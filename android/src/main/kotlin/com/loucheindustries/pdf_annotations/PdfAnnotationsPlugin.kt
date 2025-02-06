@@ -6,6 +6,7 @@ import android.graphics.Paint
 import android.graphics.PointF
 import android.graphics.Typeface
 import android.text.TextPaint
+import android.util.Log
 import android.util.SizeF
 import com.tom_roush.pdfbox.cos.COSArray
 import com.tom_roush.pdfbox.cos.COSFloat
@@ -98,8 +99,8 @@ private class PdfAnnotationsImplementation(context: Context) : PdfAnnotations {
 
   override fun addAnnotations(annotationData: AnnotationData): Boolean {
     val fileName: String = annotationData.fileName
-    val drawingPaths: List<Map<String, Any>?> = annotationData.drawingPaths
-    val textAnnotations: List<Map<String, Any>?> = annotationData.textAnnotations
+    val drawingPaths: List<Map<String, Any>>? = annotationData.drawingPaths
+    val textAnnotations: List<Map<String, Any>>? = annotationData.textAnnotations
     val pdfPageWidth: Float = annotationData.pdfPageWidth.toFloat()
     val pdfPageHeight: Float = annotationData.pdfPageHeight.toFloat()
 
@@ -116,8 +117,8 @@ private class PdfAnnotationsImplementation(context: Context) : PdfAnnotations {
     }
   }
 
-  private fun addAnnotationsToPdfBox(pdfFilePath: String, drawingPaths: List<Map<String, Any>?>,
-                                     textAnnotations: List<Map<String, Any>?>,
+  private fun addAnnotationsToPdfBox(pdfFilePath: String, drawingPaths: List<Map<String, Any>>?,
+                                     textAnnotations: List<Map<String, Any>>?,
                                      flutterPdfPageWidth: Float, flutterPdfPageHeight: Float): Boolean {
     val document: PDDocument = openPdf(pdfFilePath)
     val noOfPages = document.numberOfPages
@@ -131,24 +132,29 @@ private class PdfAnnotationsImplementation(context: Context) : PdfAnnotations {
       val scalingX = pdfBoxPageWidth / flutterPdfPageWidth
       val scalingY = pdfBoxPageHeight / flutterPdfPageHeight
       val pageHeightOffset = (noOfPages - pageNo - 1) * flutterPdfPageHeight
-      addDrawingAnnotations(
-        pageAnnotations,
-        drawingPaths,
-        scalingX,
-        scalingY,
-        pageHeightOffset,
-        pdfBoxPageHeight
-      )
-      addTextAnnotations(
-        pageAnnotations,
-        textAnnotations,
-        scalingX,
-        scalingY,
-        pageHeightOffset,
-        pdfBoxPageHeight,
-        document,
-        fontCodeMap
-      )
+      if (drawingPaths != null) {
+        addDrawingAnnotations(
+          pageAnnotations,
+          drawingPaths,
+          scalingX,
+          scalingY,
+          pageHeightOffset,
+          pdfBoxPageHeight
+        )
+      }
+
+      if (textAnnotations != null) {
+        addTextAnnotations(
+          pageAnnotations,
+          textAnnotations,
+          scalingX,
+          scalingY,
+          pageHeightOffset,
+          pdfBoxPageHeight,
+          document,
+          fontCodeMap
+        )
+      }
 
       for (ann in pageAnnotations) {
         ann.constructAppearances(document)
@@ -172,7 +178,7 @@ private class PdfAnnotationsImplementation(context: Context) : PdfAnnotations {
   @Suppress("UNCHECKED_CAST")
   private fun addDrawingAnnotations(
     pageAnnotations: MutableList<PDAnnotation>,
-    drawingPaths: List<Map<String, Any>?>,
+    drawingPaths: List<Map<String, Any>>,
     scalingX: Float,
     scalingY: Float,
     pageHeightOffset: Float,
@@ -180,7 +186,7 @@ private class PdfAnnotationsImplementation(context: Context) : PdfAnnotations {
   ) {
     for (drawnPath in drawingPaths) {
       val path: List<List<Double>> =
-        drawnPath!!.getOrDefault(
+        drawnPath.getOrDefault(
           "path",
           getDefaultPath()
         ) as List<List<Double>>
@@ -207,12 +213,12 @@ private class PdfAnnotationsImplementation(context: Context) : PdfAnnotations {
 
   @Suppress("UNCHECKED_CAST")
   private fun addTextAnnotations(
-    pageAnnotations: MutableList<PDAnnotation>, textAnnotations: List<Map<String, Any>?>,
+    pageAnnotations: MutableList<PDAnnotation>, textAnnotations: List<Map<String, Any>>,
     scalingX: Float, scalingY: Float, pageHeightOffset: Float, pdfBoxPageHeight: Float,
     document: PDDocument, fontCodeMap: MutableMap<String?, String?>
   ) {
     for (textAnnotation in textAnnotations) {
-      val textString = textAnnotation?.get("text_string") as String
+      val textString = textAnnotation["text_string"] as String
       val fontName = textAnnotation["font_name"] as String
       val fontSize = textAnnotation.getOrDefault(
           "font_size",

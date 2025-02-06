@@ -17,7 +17,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0
   build_runner:
-  pigeon: ^22.7.3
+  pigeon: ^23.0.0
   pigeon_build_runner: ^1.1.1
 
 flutter:

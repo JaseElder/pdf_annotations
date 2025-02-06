@@ -58,8 +58,6 @@ public class PdfAnnotationsPlugin: NSObject, FlutterPlugin, PdfAnnotations {
     
     func addAnnotations(annotationData: AnnotationData) throws -> Bool {
         let fileName = annotationData.fileName
-        let drawingPaths = annotationData.drawingPaths
-        let textAnnotations = annotationData.textAnnotations
         let flutterPdfPageWidth = annotationData.pdfPageWidth
         let flutterPdfPageHeight = annotationData.pdfPageHeight
         
@@ -78,10 +76,14 @@ public class PdfAnnotationsPlugin: NSObject, FlutterPlugin, PdfAnnotations {
             let pdfBoxPageHeight = pageMediaBox.height
             let scalingX = pdfBoxPageWidth / flutterPdfPageWidth
             let scalingY = pdfBoxPageHeight / flutterPdfPageHeight
-            let pageHeightOffset = Double(noOfPages) * flutterPdfPageHeight - Double(pageNo + 1) * flutterPdfPageHeight
+            let pageHeightOffset = (Double(noOfPages - pageNo - 1)) * flutterPdfPageHeight
             do {
-                try addDrawingAnnotations(drawingPaths, pageMediaBox, scalingX, scalingY, pageHeightOffset, flutterPdfPageHeight, page)
-                try addTextAnnotations(textAnnotations, scalingX, scalingY, pageHeightOffset, flutterPdfPageHeight, page)
+                if let drawingPaths = annotationData.drawingPaths {
+                    try addDrawingAnnotations(drawingPaths, pageMediaBox, scalingX, scalingY, pageHeightOffset, flutterPdfPageHeight, page)
+                }
+                if let textAnnotations = annotationData.textAnnotations {
+                    try addTextAnnotations(textAnnotations, scalingX, scalingY, pageHeightOffset, flutterPdfPageHeight, page)
+                }
             } catch let error as AnnotationsError {
                 throw error
             } catch {
@@ -97,11 +99,9 @@ public class PdfAnnotationsPlugin: NSObject, FlutterPlugin, PdfAnnotations {
         return true
     }
     
-    fileprivate func addDrawingAnnotations(_ drawingPaths: [[String : Any]?], _ mediaBox: CGRect, _ scalingX: Double, _ scalingY: Double,
+    fileprivate func addDrawingAnnotations(_ drawingPaths: [[String : Any]], _ mediaBox: CGRect, _ scalingX: Double, _ scalingY: Double,
                                            _ pageHeightOffset: Double, _ pdfPageHeight: Double, _ page: PDFPage) throws {
         for drawnPath in drawingPaths {
-            guard let drawnPath = drawnPath else { continue }
-            
             let path = drawnPath["path"] as? [[CGFloat]] ?? [[0.0, 0.0]]
             let width = drawnPath["width"] as? CGFloat ?? 0.0
             
@@ -140,10 +140,8 @@ public class PdfAnnotationsPlugin: NSObject, FlutterPlugin, PdfAnnotations {
     }
     
     
-    fileprivate func addTextAnnotations(_ textAnnotations: [[String : Any]?], _ scalingX: Double, _ scalingY: Double, _ pageHeightOffset: Double, _ pdfPageHeight: Double, _ page: PDFPage) throws {
+    fileprivate func addTextAnnotations(_ textAnnotations: [[String : Any]], _ scalingX: Double, _ scalingY: Double, _ pageHeightOffset: Double, _ pdfPageHeight: Double, _ page: PDFPage) throws {
         for textAnnotation in textAnnotations {
-            guard let textAnnotation = textAnnotation else { continue }
-            
             let coordinate = (textAnnotation["coordinate"] as? [CGFloat])?.prefix(2) ?? [0.0, 0.0]
             let textString = textAnnotation["text_string"] as? String ?? ""
             guard let fontName = textAnnotation["font_name"] as? String, !fontName.isEmpty else {

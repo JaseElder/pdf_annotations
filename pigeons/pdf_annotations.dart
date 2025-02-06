@@ -7,8 +7,8 @@ import 'package:pigeon/pigeon.dart';
 )
 class AnnotationData {
   String fileName;
-  List<Map<String, Object>?> drawingPaths;
-  List<Map<String, Object>?> textAnnotations;
+  List<Map<String, Object>>? drawingPaths;
+  List<Map<String, Object>>? textAnnotations;
   double pdfPageWidth;
   double pdfPageHeight;
 
