@@ -206,17 +206,17 @@ class PdfAnnotationsPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendabl
 }
 
 /// Generated protocol from Pigeon that represents a handler of messages from Flutter.
-protocol PdfAnnotationsApi {
+protocol PdfAnnotations {
   func registerFonts(fontList: [String]) throws -> Bool
   func addAnnotations(annotationData: AnnotationData) throws -> Bool
   func undoAnnotation(fileName: String, pageNo: Int64) throws -> Bool
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
-class PdfAnnotationsApiSetup {
+class PdfAnnotationsSetup {
   static var codec: FlutterStandardMessageCodec { PdfAnnotationsPigeonCodec.shared }
-  /// Sets up an instance of `PdfAnnotationsApi` to handle messages through the `binaryMessenger`.
-  static func setUp(binaryMessenger: FlutterBinaryMessenger, api: PdfAnnotationsApi?, messageChannelSuffix: String = "") {
+  /// Sets up an instance of `PdfAnnotations` to handle messages through the `binaryMessenger`.
+  static func setUp(binaryMessenger: FlutterBinaryMessenger, api: PdfAnnotations?, messageChannelSuffix: String = "") {
     let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
     #if os(iOS)
       let taskQueue = binaryMessenger.makeBackgroundTaskQueue?()
@@ -224,8 +224,8 @@ class PdfAnnotationsApiSetup {
       let taskQueue: FlutterTaskQueue? = nil
     #endif
     let registerFontsChannel = taskQueue == nil
-      ? FlutterBasicMessageChannel(name: "dev.flutter.pigeon.pdf_annotations.PdfAnnotationsApi.registerFonts\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
-      : FlutterBasicMessageChannel(name: "dev.flutter.pigeon.pdf_annotations.PdfAnnotationsApi.registerFonts\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec, taskQueue: taskQueue)
+      ? FlutterBasicMessageChannel(name: "dev.flutter.pigeon.pdf_annotations.PdfAnnotations.registerFonts\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+      : FlutterBasicMessageChannel(name: "dev.flutter.pigeon.pdf_annotations.PdfAnnotations.registerFonts\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec, taskQueue: taskQueue)
     if let api = api {
       registerFontsChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
@@ -241,8 +241,8 @@ class PdfAnnotationsApiSetup {
       registerFontsChannel.setMessageHandler(nil)
     }
     let addAnnotationsChannel = taskQueue == nil
-      ? FlutterBasicMessageChannel(name: "dev.flutter.pigeon.pdf_annotations.PdfAnnotationsApi.addAnnotations\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
-      : FlutterBasicMessageChannel(name: "dev.flutter.pigeon.pdf_annotations.PdfAnnotationsApi.addAnnotations\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec, taskQueue: taskQueue)
+      ? FlutterBasicMessageChannel(name: "dev.flutter.pigeon.pdf_annotations.PdfAnnotations.addAnnotations\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+      : FlutterBasicMessageChannel(name: "dev.flutter.pigeon.pdf_annotations.PdfAnnotations.addAnnotations\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec, taskQueue: taskQueue)
     if let api = api {
       addAnnotationsChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
@@ -258,8 +258,8 @@ class PdfAnnotationsApiSetup {
       addAnnotationsChannel.setMessageHandler(nil)
     }
     let undoAnnotationChannel = taskQueue == nil
-      ? FlutterBasicMessageChannel(name: "dev.flutter.pigeon.pdf_annotations.PdfAnnotationsApi.undoAnnotation\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
-      : FlutterBasicMessageChannel(name: "dev.flutter.pigeon.pdf_annotations.PdfAnnotationsApi.undoAnnotation\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec, taskQueue: taskQueue)
+      ? FlutterBasicMessageChannel(name: "dev.flutter.pigeon.pdf_annotations.PdfAnnotations.undoAnnotation\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+      : FlutterBasicMessageChannel(name: "dev.flutter.pigeon.pdf_annotations.PdfAnnotations.undoAnnotation\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec, taskQueue: taskQueue)
     if let api = api {
       undoAnnotationChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]

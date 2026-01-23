@@ -2,39 +2,39 @@ import Flutter
 import UIKit
 import PDFKit
 
-public class PdfAnnotationsPlugin: NSObject, FlutterPlugin, PdfAnnotations {
+public class PdfAnnotationsPlugin: NSObject, FlutterPlugin, PdfAnnotationsApi {
     
     static var fontNameMapping: [String: String] = [:]
     
     public static func register(with registrar: any FlutterPluginRegistrar) {
         let messenger : FlutterBinaryMessenger = registrar.messenger()
-        let api : PdfAnnotations & NSObjectProtocol = PdfAnnotationsPlugin.init()
-        PdfAnnotationsSetup.setUp(binaryMessenger: messenger, api: api)
+        let api : PdfAnnotationsApi & NSObjectProtocol = PdfAnnotationsPlugin.init()
+        PdfAnnotationsApiSetup.setUp(binaryMessenger: messenger, api: api)
     }
     
     func registerFonts(fontList: [String]) throws -> Bool {
         let bundle = Bundle.main
         var fontMapping: [String: String] = [:]
         
-        for fontName in fontList {
-            let fontKey = FlutterDartProject.lookupKey(forAsset: "fonts/\(fontName).ttf", from: bundle)
+        for fileName in fontList {
+            let fontKey = FlutterDartProject.lookupKey(forAsset: "fonts/\(fileName)", from: bundle)
             guard let path = bundle.path(forResource: fontKey, ofType: nil) else {
-                throw AnnotationsError(code: "FAIL", message: "Path not found for font: \(fontName)", details: "nil")
+                throw AnnotationsError(code: "FAIL", message: "Path not found for font: \(fileName)", details: "nil")
             }
             
             // Load the font data
             guard let fontData = try? Data(contentsOf: URL(fileURLWithPath: path)) else {
-                throw AnnotationsError(code: "FAIL", message: "Failed to load font data for font: \(fontName)", details: "nil")
+                throw AnnotationsError(code: "FAIL", message: "Failed to load font data for font: \(fileName)", details: "nil")
             }
             
             // Create data provider
             guard let dataProvider = CGDataProvider(data: fontData as CFData) else {
-                throw AnnotationsError(code: "FAIL", message: "Failed to create data provider for font: \(fontName)", details: "nil")
+                throw AnnotationsError(code: "FAIL", message: "Failed to create data provider for font: \(fileName)", details: "nil")
             }
             
             // Create CGFont reference
             guard let fontRef = CGFont(dataProvider) else {
-                throw AnnotationsError(code: "FAIL", message: "Failed to create CGFont reference for font: \(fontName)", details: "nil")
+                throw AnnotationsError(code: "FAIL", message: "Failed to create CGFont reference for font: \(fileName)", details: "nil")
             }
             
             var errorRef: Unmanaged<CFError>? = nil
@@ -42,13 +42,13 @@ public class PdfAnnotationsPlugin: NSObject, FlutterPlugin, PdfAnnotations {
                 if let error = errorRef?.takeUnretainedValue() {
                     throw AnnotationsError(code: "FAIL", message: "Failed to register font: \(error.localizedDescription)", details: "nil")
                 } else {
-                    throw AnnotationsError(code: "FAIL", message: "Unknown error registering font: \(fontName)", details: "nil")
+                    throw AnnotationsError(code: "FAIL", message: "Unknown error registering font: \(fileName)", details: "nil")
                 }
             }
             if let postScriptName = fontRef.postScriptName as String? {
-                fontMapping[fontName] = postScriptName
+                fontMapping[fileName] = postScriptName
             } else {
-                throw AnnotationsError(code: "FAIL", message: "Could not retrieve PostScript name for \(fontName)", details: "nil")
+                throw AnnotationsError(code: "FAIL", message: "Could not retrieve PostScript name for \(fileName)", details: "nil")
             }
         }
         PdfAnnotationsPlugin.fontNameMapping = fontMapping

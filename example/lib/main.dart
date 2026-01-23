@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:pdf_annotations/pdf_annotations.dart';
+import 'package:pdf_annotations/generated/pdf_annotations_api.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +17,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
-  final _pdfAnnotationsPlugin = PdfAnnotations();
+  final _pdfAnnotationsPlugin = PdfAnnotationsApi();
 
   @override
   void initState() {
