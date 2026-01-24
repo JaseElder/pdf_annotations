@@ -1,6 +1,6 @@
 name: pdf_annotations
 description: "A plugin that enables adding text and freehand annotations to existing pdfs"
-version: 0.1.0
+version: 1.0.0
 homepage: https://github.com/JaseElder
 publish_to: none
 

@@ -183,19 +183,14 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
   }
 
   Future<void> _onRender(int? pages) async {
-    if (!mounted) return;
+    if (!mounted || _pdfViewController == null) return;
 
-    if (_pdfViewController == null) return;
-
-    final previousPdfSize = _pluginState.pdfPageSize;
-    final currentPdfSize = await _pdfViewController.getCurrentPageSize();
-    _pluginState.pdfPageSize = currentPdfSize;
+    _pluginState.pdfPageSize = await _pdfViewController.getCurrentPageSize();
     _pdfViewController.setZoomLimits(1.0, 1.0, 1.0);
     setState(() {
       _isProgressVisible = false;
     });
     // reset the pdf offset in case the pdf on the live view was zoomed
-    //final currentPdfId = widget.activePdf.id;
     var zoom = widget.pdfZoom;
     final pdfOffset = widget.initialOffset;
     var pdfDefaultScale = widget.pdfDefaultScale;
@@ -206,17 +201,7 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
       zoom = _updateZoomIfNeeded(zoom, vpScale);
     }
 
-    // handle the situation where we are coming from live pdf screen in landscape orientation and non rally mode
-    // have to account for the possible difference in pdf size.
-    final double previousPdfWidth = previousPdfSize.width;
-    final double currentPdfWidth = currentPdfSize.width;
-    final ratio = previousPdfWidth != 0 ? currentPdfWidth / previousPdfWidth : 1.0;
-
-    // TODO need to check whether this is still relevant on different devices
-    //final isFromLandscapeLivePageAndNotRallyMode = false; //!ref.read(isInRallyModeProvider);
-    // final pdfOffsetNormalised = pdfOffset * (pdfDefaultScale / zoom) * (isFromLandscapeLivePageAndNotRallyMode ? ratio : 1.0);
-
-    final pdfOffsetNormalised = pdfOffset * (pdfDefaultScale / zoom) * ratio;
+    final pdfOffsetNormalised = Offset(0.0, (pdfOffset.dy * pdfDefaultScale) / zoom);
     _pluginState.pdfOffsetNotifier.value = pdfOffsetNormalised;
     widget.onOffsetChanged?.call(pdfOffsetNormalised);
     await _pdfViewController.setPosition(pdfOffsetNormalised);
