@@ -52,6 +52,58 @@ void main() {
       expect(notifier.value.last, newAnnotation);
     });
 
+    test('should add some annotations', () {
+      final newAnnotation1 = TextAnnotation(
+        'Annotation 3',
+        'Roboto',
+        12,
+        12,
+        const Offset(30, 30),
+        Colors.black,
+        true,
+        '3',
+      );
+      final newAnnotation2 = TextAnnotation(
+        'Annotation 4',
+        'Roboto',
+        10,
+        9,
+        const Offset(300, 300),
+        Colors.orange,
+        true,
+        '4',
+      );
+      notifier.addAnnotations([newAnnotation1, newAnnotation2]);
+      expect(notifier.value.length, 4);
+      expect(notifier.value.last, newAnnotation2);
+    });
+
+    test('should set some annotations', () {
+      final newAnnotation1 = TextAnnotation(
+        'Annotation 3',
+        'Roboto',
+        12,
+        12,
+        const Offset(30, 30),
+        Colors.black,
+        true,
+        '3',
+      );
+      final newAnnotation2 = TextAnnotation(
+        'Annotation 4',
+        'Roboto',
+        10,
+        9,
+        const Offset(300, 300),
+        Colors.orange,
+        true,
+        '4',
+      );
+      notifier.setAnnotations([newAnnotation1, newAnnotation2]);
+      expect(notifier.value.length, 2);
+      expect(notifier.value.last, newAnnotation2);
+    });
+
     test('should remove the last annotation', () {
       notifier.removeLast();
       expect(notifier.value.length, 1);

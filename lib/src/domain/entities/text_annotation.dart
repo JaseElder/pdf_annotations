@@ -1,20 +1,21 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:nanoid/nanoid.dart';
 
 import 'annotation_base.dart';
 
-class TextAnnotation implements AnnotationBase {
+class TextAnnotation extends Equatable implements AnnotationBase {
   @override
   final String id;
-  String text;
-  late String fontFamily;
-  double pdfFontSize;
-  double renderedFontSize;
-  late Offset coordinate;
-  late Offset originalCoordinate;
-  late Color colour;
+  final String text;
+  final String fontFamily;
+  final double pdfFontSize;
+  final double renderedFontSize;
+  final Offset coordinate;
+  final Offset originalCoordinate;
+  final Color colour;
   @override
-  bool isActive;
+  final bool isActive;
 
   TextAnnotation(
     this.text,
@@ -27,18 +28,6 @@ class TextAnnotation implements AnnotationBase {
     String? id,
   ]) : id = id ?? nanoid(4),
        originalCoordinate = coordinate;
-
-  TextAnnotation.clone(TextAnnotation other)
-    : this(
-        other.text,
-        other.fontFamily,
-        other.pdfFontSize,
-        other.renderedFontSize,
-        other.coordinate,
-        other.colour,
-        other.isActive,
-        other.id,
-      );
 
   TextAnnotation copyWith({
     String? id,
@@ -77,9 +66,8 @@ class TextAnnotation implements AnnotationBase {
   };
 
   Map<String, dynamic> toJsonWithTransform(Offset transform) {
-    TextAnnotation tempText = TextAnnotation.clone(this);
-    tempText.coordinate = coordinate - transform;
-    return tempText.toJson();
+    final transformedText = copyWith(coordinate: coordinate - transform);
+    return transformedText.toJson();
   }
 
   factory TextAnnotation.fromJson(Map<String, dynamic> json) {
@@ -99,7 +87,18 @@ class TextAnnotation implements AnnotationBase {
   @override
   String toString() {
     return 'TextAnnotation{id: $id, text: $text, fontFamily: $fontFamily, pdfFontSize: $pdfFontSize, '
-        'renderedFontSize $renderedFontSize, coordinate: $coordinate, originalCoordinate: $originalCoordinate, '
-        'colour: $colour, isActive: $isActive}';
+        'renderedFontSize $renderedFontSize, coordinate: $coordinate, colour: $colour, isActive: $isActive}';
   }
+
+  @override
+  List<Object?> get props => [
+    id,
+    text,
+    fontFamily,
+    pdfFontSize,
+    renderedFontSize,
+    coordinate,
+    colour,
+    isActive,
+  ];
 }

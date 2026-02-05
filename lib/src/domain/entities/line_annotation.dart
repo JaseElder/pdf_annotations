@@ -1,21 +1,29 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:nanoid/nanoid.dart';
+
 import 'annotation_base.dart';
 
-class LineAnnotation implements AnnotationBase {
+class LineAnnotation extends Equatable implements AnnotationBase {
   @override
   final String id;
-  List<Offset> line;
+  final List<Offset> line;
   final Color colour;
-  double width;
+  final double width;
   @override
-  bool isActive;
+  final bool isActive;
 
-  LineAnnotation(this.line, this.colour, this.width, [this.isActive = true, String? id]) : id = id ?? nanoid(4);
+  LineAnnotation(List<Offset> line, this.colour, this.width, [this.isActive = true, String? id])
+    : line = List.unmodifiable(line),
+      id = id ?? nanoid(4);
 
-  LineAnnotation.clone(LineAnnotation other) : this(other.line, other.colour, other.width, other.isActive, other.id);
-
-  LineAnnotation copyWith({String? id, List<Offset>? line, Color? colour, double? width, bool? isActive}) {
+  LineAnnotation copyWith({
+    String? id,
+    List<Offset>? line,
+    Color? colour,
+    double? width,
+    bool? isActive,
+  }) {
     return LineAnnotation(
       line ?? this.line,
       colour ?? this.colour,
@@ -28,28 +36,24 @@ class LineAnnotation implements AnnotationBase {
   @override
   Offset get primaryCoordinate => line.first;
 
-  void transformLine(Offset translation) {
-    line = line.map((offset) => offset + translation).toList();
-  }
-
-  void scaleLine(double scaleFactor) {
-    if (scaleFactor != 1.0) {
-      line = line.map((offset) => offset.scale(scaleFactor, scaleFactor)).toList();
-    }
-  }
-
   Map<String, dynamic> toJson() {
     List<Offset> points = line;
     List jsonLine = [];
     for (Offset pair in points) {
       jsonLine.add([pair.dx, pair.dy]);
     }
-    return {'id': id, 'line': jsonLine, 'colour': colour.toARGB32(), 'width': width, 'is_active': isActive};
+    return {
+      'id': id,
+      'line': jsonLine,
+      'colour': colour.toARGB32(),
+      'width': width,
+      'is_active': isActive,
+    };
   }
 
   Map<String, dynamic> toJsonWithTransform(Offset transform) {
-    LineAnnotation tempLine = LineAnnotation.clone(this);
-    tempLine.transformLine(-transform);
+    final transformedLine = line.map((offset) => offset - transform).toList();
+    final tempLine = copyWith(line: transformedLine);
     return tempLine.toJson();
   }
 
@@ -66,5 +70,9 @@ class LineAnnotation implements AnnotationBase {
   }
 
   @override
-  String toString() => 'LineAnnotation{id: $id, line: $line, colour: $colour, width: $width, isActive: $isActive}';
+  String toString() =>
+      'LineAnnotation{id: $id, line: $line, colour: $colour, width: $width, isActive: $isActive}';
+
+  @override
+  List<Object?> get props => [id, line, colour, width, isActive];
 }

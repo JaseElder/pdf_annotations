@@ -13,8 +13,8 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_pdfview:
-    git: https://github.com/JaseElder/flutter_pdfview.git
-  #    path: /Users/jasonelder/Documents/Flutter/flutter_pdfview
+#    git: https://github.com/JaseElder/flutter_pdfview.git
+    path: /Users/jasonelder/Documents/Flutter/flutter_pdfview
   collection: any
   path: ^1.9.1
   path_provider: ^2.1.5
@@ -22,13 +22,14 @@ dependencies:
   nanoid: ^1.0.0
   transparent_pointer: ^1.0.1
   logger: ^2.6.2
+  equatable: ^2.0.8
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   pigeon: ^26.1.7
-  mockito: ^5.6.3
+  mocktail: ^1.0.4
 
 flutter:
   plugin:

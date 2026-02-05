@@ -92,7 +92,6 @@ class PdfAnnotationsView extends StatefulWidget {
 class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
     with SingleTickerProviderStateMixin {
   late final PluginState _pluginState;
-  PdfDocView? _pdfDocView;
   late PdfDocViewController _pdfDocViewController;
   late DrawingOverlayController _drawingOverlayController;
 
@@ -123,9 +122,6 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
       duration: const Duration(milliseconds: kAnnotationsAnimationDuration),
       vsync: this,
     );
-    WidgetsBinding.instance.endOfFrame.then((_) {
-      if (mounted) _afterFirstLayout(context);
-    });
 
     widget.pdfAnnotationsViewController.saveAnnotations = _saveAndAddAnnotations;
     widget.pdfAnnotationsViewController.registerFonts = _registerFonts;
@@ -160,23 +156,6 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
     super.dispose();
   }
 
-  void _afterFirstLayout(BuildContext context) {
-    Timer(const Duration(milliseconds: 500), () {
-      setState(
-        () => _pdfDocView = PdfDocView(
-          pdfPath: widget.pdfPath,
-          defaultPage: widget.startPage,
-          onViewCreated: _onViewCreated,
-          onRender: _onRender,
-          onDraw: _onDraw,
-          onPageChanged: _onPageChanged,
-          onError: _onError,
-          onPageError: _onPageError,
-        ),
-      );
-    });
-  }
-
   void _onViewCreated(pdf_view.PDFViewController controller) {
     _pluginState.pdfViewController.value = controller;
     _pdfViewController = controller;
@@ -201,11 +180,14 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
       zoom = _updateZoomIfNeeded(zoom, vpScale);
     }
 
+    if (zoom == 0.0) {
+      return;
+    }
     final pdfOffsetNormalised = Offset(0.0, (pdfOffset.dy * pdfDefaultScale) / zoom);
     _pluginState.pdfOffsetNotifier.value = pdfOffsetNormalised;
-    widget.onOffsetChanged?.call(pdfOffsetNormalised);
     await _pdfViewController.setPosition(pdfOffsetNormalised);
     await _pdfViewController.setScale(pdfDefaultScale);
+    widget.onOffsetChanged?.call(pdfOffsetNormalised);
   }
 
   Future<void> _onPageChanged(int page) async {
@@ -235,8 +217,10 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
       await _pdfViewController?.setPosition(_pluginState.pdfOffsetNotifier.value);
       _editModeChanged = false;
     } else {
-      _pluginState.pdfOffsetNotifier.value = position;
-      widget.onOffsetChanged?.call(position);
+      if (_pluginState.pdfOffsetNotifier.value != position) {
+        _pluginState.pdfOffsetNotifier.value = position;
+        widget.onOffsetChanged?.call(position);
+      }
     }
   }
 
@@ -329,7 +313,18 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
         children: [
           Column(
             children: [
-              Expanded(child: _pdfDocView ?? Container()),
+              Expanded(
+                child: PdfDocView(
+                  pdfPath: widget.pdfPath,
+                  defaultPage: widget.startPage,
+                  onViewCreated: _onViewCreated,
+                  onRender: _onRender,
+                  onDraw: _onDraw,
+                  onPageChanged: _onPageChanged,
+                  onError: _onError,
+                  onPageError: _onPageError,
+                ),
+              ),
               SizedBox(
                 width: .infinity,
                 height: _pluginState.cursorAdjustmentForKeyboardHeightNotifier.value,
