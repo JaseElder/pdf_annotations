@@ -77,8 +77,8 @@ class PdfAnnotationsRepositoryImpl implements PdfAnnotationsRepository {
     double totalPdfLength,
   ) {
     // TODO do we really need this conversion? Does it look any better really?
-    final extractedLine =
-        annotation.line; //_extractPointsFromPath(_createPathFromLine(annotation.line));
+    // final extractedLine = _extractPointsFromPath(_createPathFromLine(annotation.line));
+    final extractedLine = annotation.line;
     List<List<double>> translatedPath = extractedLine
         .map(
           (offset) => [
@@ -94,6 +94,7 @@ class PdfAnnotationsRepositoryImpl implements PdfAnnotationsRepository {
     };
   }
 
+  //coverage:ignore-start
   Path _createPathFromLine(List<Offset> line) {
     var realPath = Path();
     realPath.moveTo(line.first.dx, line.first.dy);
@@ -122,6 +123,7 @@ class PdfAnnotationsRepositoryImpl implements PdfAnnotationsRepository {
       yield metric.getTangentForOffset(distance)?.position ?? Offset.zero;
     }
   }
+  //coverage:ignore-end
 
   List<int> _colorToList(Color color) {
     return [

@@ -619,8 +619,9 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
   }
 
   Future<void> _setPdfOffset(Offset position) async {
-    final pdfPageSize = _pluginState.pdfPageSize;
-    final pageCount = await _pluginState.pdfViewController.value?.getPageCount() ?? 1;
+    final pdfPageSize =
+        await _pluginState.pdfViewControllerNotifier.value?.getCurrentPageSize() ?? .zero;
+    final pageCount = await _pluginState.pdfViewControllerNotifier.value?.getPageCount() ?? 1;
     final pdfHeightLimit = pageCount * pdfPageSize.height - _overlayHeightScaled;
     final yTranslation = -(position.dy - 100.0) * _devPixRatio;
     final newPdfOffset = _pluginState.pdfOffsetNotifier.value.translate(0.0, yTranslation);

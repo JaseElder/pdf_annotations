@@ -157,14 +157,13 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
   }
 
   void _onViewCreated(pdf_view.PDFViewController controller) {
-    _pluginState.pdfViewController.value = controller;
+    _pluginState.pdfViewControllerNotifier.value = controller;
     _pdfViewController = controller;
   }
 
   Future<void> _onRender(int? pages) async {
     if (!mounted || _pdfViewController == null) return;
 
-    _pluginState.pdfPageSize = await _pdfViewController.getCurrentPageSize();
     _pdfViewController.setZoomLimits(1.0, 1.0, 1.0);
     setState(() {
       _isProgressVisible = false;

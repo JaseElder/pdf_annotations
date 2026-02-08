@@ -36,20 +36,23 @@ public class PdfAnnotationsPlugin: NSObject, FlutterPlugin, PdfAnnotationsApi {
             guard let fontRef = CGFont(dataProvider) else {
                 throw AnnotationsError(code: "FAIL", message: "Failed to create CGFont reference for font: \(fileName)", details: "nil")
             }
-            
-            var errorRef: Unmanaged<CFError>? = nil
-            if !CTFontManagerRegisterGraphicsFont(fontRef, &errorRef) {
-                if let error = errorRef?.takeUnretainedValue() {
-                    throw AnnotationsError(code: "FAIL", message: "Failed to register font: \(error.localizedDescription)", details: "nil")
-                } else {
-                    throw AnnotationsError(code: "FAIL", message: "Unknown error registering font: \(fileName)", details: "nil")
-                }
-            }
-            if let postScriptName = fontRef.postScriptName as String? {
-                fontMapping[fileName] = postScriptName
-            } else {
+
+            guard let postScriptName = fontRef.postScriptName as String? else {
                 throw AnnotationsError(code: "FAIL", message: "Could not retrieve PostScript name for \(fileName)", details: "nil")
             }
+
+            if UIFont(name: postScriptName, size: 1) == nil {
+                var errorRef: Unmanaged<CFError>?
+                if !CTFontManagerRegisterGraphicsFont(fontRef, &errorRef) {
+                    if let error = errorRef?.takeRetainedValue() {
+                        throw AnnotationsError(code: "FAIL", message: "Failed to register font: \((error as Error).localizedDescription)", details: "nil")
+                    } else {
+                        throw AnnotationsError(code: "FAIL", message: "Unknown error registering font: \(fileName)", details: "nil")
+                    }
+                }
+            }
+
+            fontMapping[fileName] = postScriptName
         }
         PdfAnnotationsPlugin.fontNameMapping = fontMapping
         

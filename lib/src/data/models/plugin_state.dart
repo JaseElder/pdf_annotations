@@ -17,46 +17,42 @@ import 'text_insertion_point_notifier.dart';
 class PluginState {
   late final JsonAnnotationsRepository _jsonAnnotationsRepository;
 
+  // StreamControllers
   final _textsStreamController = StreamController<List<TextAnnotation>>.broadcast();
   final _linesStreamController = StreamController<List<LineAnnotation>>.broadcast();
   final _currentLineStreamController = StreamController<LineAnnotation>.broadcast();
-
   Stream<List<TextAnnotation>> get textsStream => _textsStreamController.stream;
 
   Stream<List<LineAnnotation>> get linesStream => _linesStreamController.stream;
 
   Stream<LineAnnotation> get currentLineStream => _currentLineStreamController.stream;
 
-  Size pdfPageSize = .zero;
-  Color draggingTextFieldBackgroundColor = Colors.black;
-  final LineAnnotation _defaultLineAnnotation = LineAnnotation([], Colors.transparent, 0.0);
-
-  final popInvokedNotifier = ValueNotifier<bool>(false);
-  final pdfOffsetNotifier = ValueNotifier<Offset>(.zero);
-  final keyboardHeightNotifier = ValueNotifier<double>(0.0);
-  final textFieldShowingNotifier = ValueNotifier<bool>(false);
+  // Notifiers
   final annotationColourNotifier = ValueNotifier<Color>(Colors.transparent);
-  final fontSizeNotifier = ValueNotifier<double>(16.0);
-  final fontFamilyNotifier = ValueNotifier<String>('Roboto');
-  final textFocusNodeNotifier = ValueNotifier<FocusNode>(FocusNode());
-  final textInsertionPointNotifier = TextInsertionPointNotifier(.zero);
-  final editModeNotifier = ValueNotifier<EditMode>(.pan);
-  late final currentLineAnnotationNotifier = LineAnnotationNotifier(_defaultLineAnnotation);
-  final lineModeNotifier = ValueNotifier<LineMode>(.pen);
-  final cursorAdjustmentForKeyboardHeightNotifier = ValueNotifier<double>(0.0);
-  final opacityValueNotifier = ValueNotifier<double>(1.0);
-  final lastUndoNotifier = ValueNotifier<({String id, String type})>((id: '', type: ''));
   final annotationQualityNotifier = ValueNotifier<QualityValue>(.high);
-
+  late final currentLineAnnotationNotifier = LineAnnotationNotifier(_defaultLineAnnotation);
+  final cursorAdjustmentForKeyboardHeightNotifier = ValueNotifier<double>(0.0);
+  final editModeNotifier = ValueNotifier<EditMode>(.pan);
+  final fontFamilyNotifier = ValueNotifier<String>('Roboto');
+  final fontSizeNotifier = ValueNotifier<double>(16.0);
+  final keyboardHeightNotifier = ValueNotifier<double>(0.0);
+  final lastUndoNotifier = ValueNotifier<({String id, String type})>((id: '', type: ''));
   final lineAnnotationsListNotifier = GenericAnnotationsNotifier<LineAnnotation>(
     (original, {bool? isActive}) => original.copyWith(isActive: isActive),
   );
+  final lineModeNotifier = ValueNotifier<LineMode>(.pen);
+  final opacityValueNotifier = ValueNotifier<double>(1.0);
+  final pdfOffsetNotifier = ValueNotifier<Offset>(.zero);
+  final popInvokedNotifier = ValueNotifier<bool>(false);
+  final pdfViewControllerNotifier = ValueNotifier<PDFViewController?>(null);
+  final redoEnabledNotifier = ValueNotifier<bool>(false);
   final textAnnotationsListNotifier = GenericAnnotationsNotifier<TextAnnotation>(
     (original, {bool? isActive}) => original.copyWith(isActive: isActive),
   );
-
-  final ValueNotifier<bool> undoEnabledNotifier = ValueNotifier<bool>(false);
-  final ValueNotifier<bool> redoEnabledNotifier = ValueNotifier<bool>(false);
+  final textFieldShowingNotifier = ValueNotifier<bool>(false);
+  final textFocusNodeNotifier = ValueNotifier<FocusNode>(FocusNode());
+  final textInsertionPointNotifier = TextInsertionPointNotifier(.zero);
+  final undoEnabledNotifier = ValueNotifier<bool>(false);
 
   EditMode get editMode => editModeNotifier.value;
 
@@ -66,7 +62,8 @@ class PluginState {
 
   FocusNode get textFocusNode => textFocusNodeNotifier.value;
 
-  late final pdfViewController = ValueNotifier<PDFViewController?>(null);
+  final LineAnnotation _defaultLineAnnotation = LineAnnotation([], Colors.transparent, 0.0);
+  Color draggingTextFieldBackgroundColor = Colors.black;
 
   PluginState({
     required String savedAnnotationsJsonSuffix,
@@ -156,7 +153,7 @@ class PluginState {
     required double scaledOverlayWidth,
     required double shortestSideEstimate,
   }) async {
-    var loadedData = await _jsonAnnotationsRepository.loadAnnotationsState(
+    final loadedData = await _jsonAnnotationsRepository.loadAnnotationsState(
       pdfPath: pdfPath,
       vpPosition: viewportPosition,
       overlayWidthScaled: scaledOverlayWidth,

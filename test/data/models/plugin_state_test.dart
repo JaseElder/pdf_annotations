@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pdf_annotations/src/data/models/plugin_state.dart';
 import 'package:pdf_annotations/src/domain/entities/line_annotation.dart';
+import 'package:pdf_annotations/src/domain/entities/text_annotation.dart';
 import 'package:pdf_annotations/src/utilities/enums.dart';
 
 void main() {
@@ -47,7 +48,7 @@ void main() {
       // No direct way to check if streams are closed, but this ensures the method is called.
     });
 
-    test('adding an annotation enables undo when a listener is attached', () {
+    test('adding a line annotation enables undo when a listener is attached', () {
       final lineAnnotation = LineAnnotation(
         [const Offset(10, 10), const Offset(50, 50)],
         const Color(0xFFFF0000),
@@ -73,7 +74,7 @@ void main() {
       expect(pluginState.redoEnabledNotifier.value, isFalse);
     });
 
-    test('setting an added annotation to inactive enables redo and disables undo', () {
+    test('setting an added line annotation to inactive in a list of 2 enables redo and undo', () {
       final lineAnnotation = LineAnnotation(
         [const Offset(10, 10), const Offset(50, 50)],
         const Color(0xFFFF0000),
@@ -119,5 +120,143 @@ void main() {
       expect(pluginState.undoEnabledNotifier.value, isTrue);
       expect(pluginState.redoEnabledNotifier.value, isTrue);
     });
+
+    test('adding a text annotation enables undo when a listener is attached', () {
+      final textAnnotation = TextAnnotation(
+        'tester',
+        'Roboto',
+        24.0,
+        12.0,
+        Offset(100.0, 100.0),
+        Colors.black,
+        true,
+        'test-text-1',
+      );
+
+      expect(pluginState.textAnnotationsListNotifier.value, isEmpty);
+      expect(pluginState.undoEnabledNotifier.value, isFalse);
+
+      void externalListener() {
+        pluginState.updateUndoRedoState();
+      }
+
+      pluginState.textAnnotationsListNotifier.addListener(externalListener);
+      addTearDown(() => pluginState.textAnnotationsListNotifier.removeListener(externalListener));
+
+      pluginState.textAnnotationsListNotifier.addAnnotations([textAnnotation]);
+
+      expect(pluginState.textAnnotationsListNotifier.value, [textAnnotation]);
+      expect(pluginState.undoEnabledNotifier.value, isTrue);
+      expect(pluginState.redoEnabledNotifier.value, isFalse);
+    });
+
+    test('setting an added text annotation to inactive enables redo and disables undo', () {
+      final textAnnotation = TextAnnotation(
+        'tester',
+        'Roboto',
+        24.0,
+        12.0,
+        Offset(100.0, 100.0),
+        Colors.black,
+        true,
+        'test-text-1',
+      );
+
+      final textAnnotationInactive = TextAnnotation(
+        'tester',
+        'Roboto',
+        24.0,
+        12.0,
+        Offset(100.0, 100.0),
+        Colors.black,
+        false,
+        'test-text-1',
+      );
+
+      expect(pluginState.textAnnotationsListNotifier.value, isEmpty);
+      expect(pluginState.undoEnabledNotifier.value, isFalse);
+      expect(pluginState.redoEnabledNotifier.value, isFalse);
+
+      void externalListener() {
+        pluginState.updateUndoRedoState();
+      }
+
+      pluginState.textAnnotationsListNotifier.addListener(externalListener);
+      addTearDown(() => pluginState.textAnnotationsListNotifier.removeListener(externalListener));
+
+      pluginState.textAnnotationsListNotifier.addAnnotations([textAnnotation]);
+      pluginState.textAnnotationsListNotifier.inactivateId('test-text-1');
+
+      expect(pluginState.textAnnotationsListNotifier.value, [textAnnotationInactive]);
+      expect(pluginState.undoEnabledNotifier.value, isFalse);
+      expect(pluginState.redoEnabledNotifier.value, isTrue);
+    });
+
+    test(
+      'added text annotation and line annotation and setting both to inactive enables redo and disables undo',
+      () {
+        final textAnnotation = TextAnnotation(
+          'tester',
+          'Roboto',
+          24.0,
+          12.0,
+          Offset(100.0, 100.0),
+          Colors.black,
+          true,
+          'test-text-1',
+        );
+
+        final lineAnnotation = LineAnnotation(
+          [const Offset(10, 10), const Offset(50, 50)],
+          const Color(0xFFFF0000),
+          2.0,
+          true,
+          'test-line-1',
+        );
+
+        final textAnnotationInactive = TextAnnotation(
+          'tester',
+          'Roboto',
+          24.0,
+          12.0,
+          Offset(100.0, 100.0),
+          Colors.black,
+          false,
+          'test-text-1',
+        );
+
+        final lineAnnotationInactive = LineAnnotation(
+          [const Offset(10, 10), const Offset(50, 50)],
+          const Color(0xFFFF0000),
+          2.0,
+          false,
+          'test-line-1',
+        );
+
+        expect(pluginState.undoEnabledNotifier.value, isFalse);
+        expect(pluginState.redoEnabledNotifier.value, isFalse);
+
+        void externalListener() {
+          pluginState.updateUndoRedoState();
+        }
+
+        pluginState.textAnnotationsListNotifier.addListener(externalListener);
+        pluginState.lineAnnotationsListNotifier.addListener(externalListener);
+        addTearDown(() {
+          pluginState.textAnnotationsListNotifier.removeListener(externalListener);
+          pluginState.lineAnnotationsListNotifier.removeListener(externalListener);
+        });
+
+        pluginState.textAnnotationsListNotifier.addAnnotations([textAnnotation]);
+        pluginState.lineAnnotationsListNotifier.addAnnotations([lineAnnotation]);
+        pluginState.textAnnotationsListNotifier.inactivateId('test-text-1');
+        pluginState.lineAnnotationsListNotifier.inactivateId('test-line-1');
+
+        expect(pluginState.textAnnotationsListNotifier.value, [textAnnotationInactive]);
+        expect(pluginState.lineAnnotationsListNotifier.value, [lineAnnotationInactive]);
+        expect(pluginState.undoEnabledNotifier.value, isFalse);
+        expect(pluginState.redoEnabledNotifier.value, isTrue);
+      },
+    );
   });
 }

@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
+
 import '../../domain/entities/annotation_base.dart';
 
 class GenericAnnotationsNotifier<T extends AnnotationBase> extends ValueNotifier<List<T>> {
@@ -9,6 +10,9 @@ class GenericAnnotationsNotifier<T extends AnnotationBase> extends ValueNotifier
   GenericAnnotationsNotifier(this._copier) : super([]);
 
   void addAnnotation(T annotation) {
+    if (value.any((element) => element.id == annotation.id)) {
+      return;
+    }
     value = [...value, annotation];
   }
 

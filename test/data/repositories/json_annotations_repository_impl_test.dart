@@ -58,15 +58,15 @@ void main() {
 
     test('should save and load annotations', () async {
       final lineAnnotations = [
-        LineAnnotation([const Offset(10, 20)], Colors.red, 2.0, true),
+        LineAnnotation([const Offset(10, 20)], Colors.red, 2.0, true, 'line1'),
       ];
       final textAnnotations = [
-        TextAnnotation('test', 'Roboto', 12, 12, const Offset(0, 0), Colors.black, true, '1'),
+        TextAnnotation('test', 'Roboto', 12, 12, const Offset(0, 0), Colors.black, true, 'text1'),
       ];
       const vpPosition = Offset.zero;
       const overlayWidthScaled = 200.0;
       const pdfPath = 'test.pdf';
-      final addedAnnotations = [AddedAnnotation('text', '1')];
+      final addedAnnotations = [AddedAnnotation('line', 'line1'), AddedAnnotation('text', 'text1')];
 
       final result = await repository.saveAnnotationsState(
         lineAnnotations: lineAnnotations,
@@ -90,7 +90,88 @@ void main() {
       final (loadedLines, loadedTexts, loadedAdded) = loadedData!;
       expect(loadedLines.length, 1);
       expect(loadedTexts.length, 1);
-      expect(loadedAdded.length, 1);
+      expect(loadedAdded.length, 2);
+    });
+
+    test('should save annotations and save again when annotations change', () async {
+      final lineAnnotations = [
+        LineAnnotation([const Offset(10, 20)], Colors.red, 2.0, true, 'line1'),
+      ];
+      final textAnnotations = [
+        TextAnnotation('test', 'Roboto', 12, 12, const Offset(0, 0), Colors.black, true, 'text1'),
+      ];
+      const vpPosition = Offset.zero;
+      const overlayWidthScaled = 200.0;
+      const pdfPath = 'test.pdf';
+      final addedAnnotations = [AddedAnnotation('line', 'line1'), AddedAnnotation('text', 'text1')];
+
+      final result = await repository.saveAnnotationsState(
+        lineAnnotations: lineAnnotations,
+        textAnnotations: textAnnotations,
+        vpPosition: vpPosition,
+        overlayWidthScaled: overlayWidthScaled,
+        pdfPath: pdfPath,
+        addedAnnotations: addedAnnotations,
+      );
+
+      expect(result, SaveStateResult.fileCreated);
+
+      final result2 = await repository.saveAnnotationsState(
+        lineAnnotations: lineAnnotations,
+        textAnnotations: textAnnotations,
+        vpPosition: vpPosition,
+        overlayWidthScaled: overlayWidthScaled,
+        pdfPath: pdfPath,
+        addedAnnotations: addedAnnotations,
+      );
+
+      expect(result2, SaveStateResult.noChange);
+
+      final loadedData = await repository.loadAnnotationsState(
+        shortestSideEstimate: 200,
+        pdfPath: pdfPath,
+        overlayWidthScaled: overlayWidthScaled,
+        vpPosition: vpPosition,
+      );
+
+      expect(loadedData, isNotNull);
+      final (loadedLines, loadedTexts, loadedAdded) = loadedData!;
+      expect(loadedLines.length, 1);
+      expect(loadedTexts.length, 1);
+      expect(loadedAdded.length, 2);
+    });
+
+    test('should save all inactive annotations thus not loading', () async {
+      final lineAnnotations = [
+        LineAnnotation([const Offset(10, 20)], Colors.red, 2.0, false, 'line1'),
+      ];
+      final textAnnotations = [
+        TextAnnotation('test', 'Roboto', 12, 12, const Offset(0, 0), Colors.black, false, 'text1'),
+      ];
+      const vpPosition = Offset.zero;
+      const overlayWidthScaled = 200.0;
+      const pdfPath = 'test.pdf';
+      final addedAnnotations = [AddedAnnotation('line', 'line1'), AddedAnnotation('text', 'text1')];
+
+      final result = await repository.saveAnnotationsState(
+        lineAnnotations: lineAnnotations,
+        textAnnotations: textAnnotations,
+        vpPosition: vpPosition,
+        overlayWidthScaled: overlayWidthScaled,
+        pdfPath: pdfPath,
+        addedAnnotations: addedAnnotations,
+      );
+
+      expect(result, SaveStateResult.noChange);
+
+      final loadedData = await repository.loadAnnotationsState(
+        shortestSideEstimate: 200,
+        pdfPath: pdfPath,
+        overlayWidthScaled: overlayWidthScaled,
+        vpPosition: vpPosition,
+      );
+
+      expect(loadedData, isNull);
     });
   });
 }
