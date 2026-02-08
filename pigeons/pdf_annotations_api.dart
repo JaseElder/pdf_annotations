@@ -7,6 +7,7 @@ import 'package:pigeon/pigeon.dart';
     kotlinOptions: KotlinOptions(package: 'com.loucheindustries.pdf_annotations'),
     swiftOut: 'ios/Classes/PdfAnnotations.g.swift',
     swiftOptions: SwiftOptions(errorClassName: 'AnnotationsError'),
+    copyrightHeader: 'pigeons/copyright_header.txt',
   ),
 )
 class AnnotationData {
