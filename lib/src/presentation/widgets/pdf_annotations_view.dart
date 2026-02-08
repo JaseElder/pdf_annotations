@@ -276,8 +276,10 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
   Offset _getOffset() => _pluginState.pdfOffsetNotifier.value;
 
   void _setEditMode(EditMode mode) {
-    _editModeChanged = _pluginState.editMode != mode;
-    _pluginState.editMode = mode;
+    setState(() {
+      _editModeChanged = _pluginState.editMode != mode;
+      _pluginState.editMode = mode;
+    });
   }
 
   void _setFontSize(double fontSize) {
