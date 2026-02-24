@@ -21,12 +21,7 @@ class CurrentLineRenderer extends StatelessWidget {
         return CustomPaint(
           isComplex: true,
           willChange: true,
-          painter: DrawingRenderer(
-            lineAnnotations: [annotation],
-            annotationQuality: qualityValue,
-            opacity: 1.0,
-            latestUndo: (id: '', type: ''),
-          ),
+          painter: DrawingRenderer(lineAnnotations: [annotation], annotationQuality: qualityValue),
         );
       },
     );

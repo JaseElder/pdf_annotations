@@ -100,12 +100,9 @@ class _PdfDocViewState extends State<PdfDocView> {
       return PDFView(
         key: _key,
         filePath: pdfPath,
-        enableSwipe: true,
-        swipeHorizontal: false,
-        autoSpacing: true,
+        defaultPage: widget.defaultPage,
         pageFling: false,
         pageSnap: false,
-        defaultPage: widget.defaultPage,
         fitPolicy: .WIDTH,
         preventLinkNavigation: true,
         gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
@@ -141,15 +138,15 @@ class _PdfDocViewState extends State<PdfDocView> {
     }
   }
 
-  Future<void> _handleOnDraw() async {
+  Future<void> _handleOnDraw(double pdfXOffset, double pdfYOffset, double pdfScale) async {
     if (_pdfViewController == null) {
       return;
     }
-    final (Offset position, double scale) = await (
-      _pdfViewController!.getPosition(),
-      _pdfViewController!.getScale(),
-    ).wait;
-    await widget.onDraw?.call(position: position, scale: scale);
+    // final (Offset position, double scale) = await (
+    //   _pdfViewController!.getPosition(),
+    //   _pdfViewController!.getScale(),
+    // ).wait;
+    await widget.onDraw?.call(position: Offset(pdfXOffset, pdfYOffset), scale: pdfScale);
   }
 
   void _handleError(dynamic error) => widget.onError?.call(error);

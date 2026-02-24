@@ -19,33 +19,80 @@ typedef DefaultScaleUpdateCallback = void Function(double newScale);
 typedef OffsetChangedCallback = void Function(Offset newOffset);
 typedef TextFieldShowingCallback = void Function(bool showing);
 
+/// Controller for [PdfAnnotationsView].
+///
+/// Use this controller to interact with the PDF annotations view programmatically.
+/// It provides methods to undo/redo actions, save annotations, change edit modes,
+/// and update styling properties like color and font.
 class PdfAnnotationsViewController {
+  /// Undoes the last annotation action (stroke or text).
+  /// Returns a Future that completes when the undo operation is finished.
   late Future<void> Function() undo;
+
+  /// Redoes the last undone annotation action.
+  /// Returns a Future that completes when the redo operation is finished.
   late Future<void> Function() redo;
+
+  /// Saves the current annotations to a JSON file and optionally merges them into the PDF.
+  /// Returns `true` if successful, `false` otherwise.
   late Future<bool> Function() saveAnnotations;
+
+  /// Sets the color for new annotations (lines and text).
   late void Function(Color colour) setAnnotationColour;
+
+  /// Sets the rendering quality of the annotations.
   late void Function(QualityValue quality) setAnnotationQuality;
+
+  /// Sets the line mode (e.g., [LineMode.pen] or [LineMode.highlighter]).
   late void Function(LineMode lineMode) setLineMode;
+
+  /// Sets the scroll position of the PDF view.
   late void Function(Offset offset) setPosition;
+
+  /// Gets the current scroll position of the PDF view.
   late Offset Function() getPosition;
+
+  /// Sets the current interaction mode (e.g., [EditMode.pan], [EditMode.draw], [EditMode.text]).
   late void Function(EditMode newMode) setEditMode;
+
+  /// Notifies the view that a pop/back navigation has been invoked.
+  /// This typically triggers a loading state or cleanup before exit.
   late void Function() setPopInvoked;
+
+  /// Sets the font size for new text annotations.
   late void Function(double fontSize) setFontSize;
+
+  /// Sets the font family for new text annotations.
   late void Function(String fontFamily) setFontFamily;
+
+  /// Notifies the view that the keyboard has been dismissed.
   late void Function() keyboardDismissed;
+
+  /// Sets the height of the keyboard to adjust the view insets.
   late void Function(double height) setKeyboardHeight;
+
+  /// Registers custom fonts for use in text annotations.
+  /// Returns true if registration was successful.
   late Future<bool> Function(List<PdfFont>) registerFonts;
+
+  /// Callback triggered when undo availability changes.
   void Function(bool isAvailable)? onUndoAvailabilityChanged;
+
+  /// Callback triggered when redo availability changes.
   void Function(bool isAvailable)? onRedoAvailabilityChanged;
 }
 
+/// A widget that displays a PDF document with annotation capabilities.
+///
+/// This widget layers a drawing overlay on top of a PDF view, allowing users
+/// to draw lines and add text. It synchronizes scrolling between
+/// the PDF and the annotations.
 class PdfAnnotationsView extends StatefulWidget {
   const PdfAnnotationsView({
     super.key,
     this.savedAnnotationsJsonSuffix = '_saved_annotations.json',
     this.bakedPdfSuffix = '_annotated.pdf',
     required this.pdfPath,
-    required this.pdfDefaultScale,
     required this.startPage,
     required this.initialOffset,
     required this.initialAnnotationColour,
@@ -54,8 +101,6 @@ class PdfAnnotationsView extends StatefulWidget {
     required this.initialFontFamily,
     required this.pdfZoom,
     required this.pdfAnnotationsViewController,
-    required this.onZoomUpdate,
-    required this.onDefaultScaleUpdate,
     this.progressIndicatorColour = Colors.black,
     this.onPageChanged,
     this.onOffsetChanged,
@@ -64,25 +109,55 @@ class PdfAnnotationsView extends StatefulWidget {
     this.onPageError,
   });
 
+  /// Suffix appended to the JSON file storing annotation data.
   final String savedAnnotationsJsonSuffix;
+
+  /// Suffix appended to the PDF file when saving with annotations merged.
   final String bakedPdfSuffix;
+
+  /// Absolute path to the PDF file to display.
   final String pdfPath;
-  final double pdfDefaultScale;
+
+  /// The page index to display initially (0-based).
   final int startPage;
+
+  /// The initial scroll offset of the view.
   final Offset initialOffset;
+
+  /// The initial color used for annotations.
   final Color initialAnnotationColour;
+
+  /// The initial font size for text annotations.
   final double initialFontSize;
+
+  /// The initial font family for text annotations.
   final String initialFontFamily;
+
+  /// Background color of the text field while it is being dragged.
   final Color draggingTextFieldBackgroundColour;
+
+  /// Color of the loading progress indicator.
   final Color progressIndicatorColour;
+
+  /// The current zoom level of the PDF.
   final double pdfZoom;
+
+  /// Controller to manage the view's state and actions.
   final PdfAnnotationsViewController pdfAnnotationsViewController;
+
+  /// Callback triggered when the page changes.
   final PageChangedCallback? onPageChanged;
-  final ZoomUpdateCallback onZoomUpdate;
-  final DefaultScaleUpdateCallback onDefaultScaleUpdate;
+
+  /// Callback triggered when the scroll offset changes.
   final OffsetChangedCallback? onOffsetChanged;
+
+  /// Callback triggered when a text field visibility changes.
   final TextFieldShowingCallback? onTextFieldShowing;
+
+  /// Callback triggered when a general error occurs.
   final ErrorCallback? onError;
+
+  /// Callback triggered when a page loading error occurs.
   final PageErrorCallback? onPageError;
 
   @override
@@ -171,42 +246,23 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
     // reset the pdf offset in case the pdf on the live view was zoomed
     var zoom = widget.pdfZoom;
     final pdfOffset = widget.initialOffset;
-    var pdfDefaultScale = widget.pdfDefaultScale;
 
-    if (pdfDefaultScale == 0.0 || zoom == 0.0) {
-      final vpScale = await _pdfViewController.getScale();
-      pdfDefaultScale = _updateDefaultScaleIfNeeded(pdfDefaultScale, vpScale);
-      zoom = _updateZoomIfNeeded(zoom, vpScale);
+    if (zoom == 0.0) {
+      zoom = await _pdfViewController.getScale();
     }
 
     if (zoom == 0.0) {
       return;
     }
-    final pdfOffsetNormalised = Offset(0.0, (pdfOffset.dy * pdfDefaultScale) / zoom);
+    final pdfOffsetNormalised = Offset(0.0, pdfOffset.dy / zoom);
     _pluginState.pdfOffsetNotifier.value = pdfOffsetNormalised;
     await _pdfViewController.setPosition(pdfOffsetNormalised);
-    await _pdfViewController.setScale(pdfDefaultScale);
+    await _pdfViewController.setScale(1.0);
     widget.onOffsetChanged?.call(pdfOffsetNormalised);
   }
 
   Future<void> _onPageChanged(int page) async {
     widget.onPageChanged?.call(page);
-  }
-
-  double _updateDefaultScaleIfNeeded(double pdfDefaultScale, double vpScale) {
-    if (pdfDefaultScale == 0.0) {
-      widget.onDefaultScaleUpdate(vpScale);
-      return vpScale;
-    }
-    return pdfDefaultScale;
-  }
-
-  double _updateZoomIfNeeded(double zoom, double vpScale) {
-    if (zoom == 0.0) {
-      widget.onZoomUpdate(vpScale);
-      return vpScale;
-    }
-    return zoom;
   }
 
   Future<void> _onDraw({required Offset position, required double scale}) async {
@@ -458,7 +514,8 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
 
   Future<String> _createBakedFile(String pdfPath) async {
     final file = File(pdfPath);
-    final bakedPath = pdfPath.replaceAll(kPdfSuffix, widget.bakedPdfSuffix);
+    final position = pdfPath.lastIndexOf(kPdfSuffix).clamp(0, pdfPath.length);
+    final bakedPath = pdfPath.replaceFirst(kPdfSuffix, widget.bakedPdfSuffix, position);
     await file.copy(bakedPath);
     return bakedPath;
   }

@@ -163,7 +163,7 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _updateViewportPosition();
       await _loadPreviousSave();
-      _pluginState.updateUndoRedoState();
+      _pluginState.updateUndoRedoEnabledState();
     });
   }
 
@@ -294,12 +294,12 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
 
   void _updateLinesStream() {
     _pluginState.updateLinesStream(_pluginState.lineAnnotationsListNotifier.value);
-    _pluginState.updateUndoRedoState();
+    _pluginState.updateUndoRedoEnabledState();
   }
 
   void _updateTextsStream() {
     _pluginState.updateTextsStream(_pluginState.textAnnotationsListNotifier.value);
-    _pluginState.updateUndoRedoState();
+    _pluginState.updateUndoRedoEnabledState();
   }
 
   void _onLineScaleStart(ScaleStartDetails details) {
@@ -585,7 +585,7 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
       } else if (lastActiveAnnotation.annotationType == kLineAnnotation) {
         position = _pluginState.lineAnnotationsListNotifier.inactivateId(lastActiveAnnotation.id);
       }
-      _pluginState.updateUndoRedoState();
+      _pluginState.updateUndoRedoEnabledState();
       _pluginState.lastUndoNotifier.value = (
         id: lastActiveAnnotation.id,
         type: lastActiveAnnotation.annotationType,
@@ -609,7 +609,7 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
       } else if (firstInactiveAnnotation.annotationType == kLineAnnotation) {
         position = _pluginState.lineAnnotationsListNotifier.activateId(firstInactiveAnnotation.id);
       }
-      _pluginState.updateUndoRedoState();
+      _pluginState.updateUndoRedoEnabledState();
       firstInactiveAnnotation.isActive = true;
       if (position != null && !_pluginState.textFocusNode.hasFocus) {
         _setInitialMoveConditions();

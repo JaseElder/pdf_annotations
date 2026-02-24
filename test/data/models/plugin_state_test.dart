@@ -61,7 +61,7 @@ void main() {
       expect(pluginState.undoEnabledNotifier.value, isFalse);
 
       void externalListener() {
-        pluginState.updateUndoRedoState();
+        pluginState.updateUndoRedoEnabledState();
       }
 
       pluginState.lineAnnotationsListNotifier.addListener(externalListener);
@@ -104,7 +104,7 @@ void main() {
       expect(pluginState.redoEnabledNotifier.value, isFalse);
 
       void externalListener() {
-        pluginState.updateUndoRedoState();
+        pluginState.updateUndoRedoEnabledState();
       }
 
       pluginState.lineAnnotationsListNotifier.addListener(externalListener);
@@ -137,7 +137,7 @@ void main() {
       expect(pluginState.undoEnabledNotifier.value, isFalse);
 
       void externalListener() {
-        pluginState.updateUndoRedoState();
+        pluginState.updateUndoRedoEnabledState();
       }
 
       pluginState.textAnnotationsListNotifier.addListener(externalListener);
@@ -178,7 +178,7 @@ void main() {
       expect(pluginState.redoEnabledNotifier.value, isFalse);
 
       void externalListener() {
-        pluginState.updateUndoRedoState();
+        pluginState.updateUndoRedoEnabledState();
       }
 
       pluginState.textAnnotationsListNotifier.addListener(externalListener);
@@ -237,7 +237,7 @@ void main() {
         expect(pluginState.redoEnabledNotifier.value, isFalse);
 
         void externalListener() {
-          pluginState.updateUndoRedoState();
+          pluginState.updateUndoRedoEnabledState();
         }
 
         pluginState.textAnnotationsListNotifier.addListener(externalListener);

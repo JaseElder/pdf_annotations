@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../domain/entities/line_annotation.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums.dart';
@@ -12,8 +13,8 @@ class DrawingRenderer extends CustomPainter {
   DrawingRenderer({
     required this.lineAnnotations,
     required this.annotationQuality,
-    required this.opacity,
-    required this.latestUndo,
+    this.opacity = 1.0,
+    this.latestUndo = (id: '', type: ''),
   });
 
   @override
@@ -29,7 +30,9 @@ class DrawingRenderer extends CustomPainter {
       final isLatestUndo = latestUndo.id == lineAnnotation.id && latestUndo.type == kLineAnnotation;
       if (line.isEmpty) continue;
       if (lineAnnotation.isActive || isLatestUndo) {
-        paint.color = (isLatestUndo) ? lineAnnotation.colour.withValues(alpha: opacity) : lineAnnotation.colour;
+        paint.color = (isLatestUndo)
+            ? lineAnnotation.colour.withValues(alpha: opacity)
+            : lineAnnotation.colour;
         paint.strokeWidth = lineAnnotation.width;
 
         final path = Path()..moveTo(line.first.dx, line.first.dy);

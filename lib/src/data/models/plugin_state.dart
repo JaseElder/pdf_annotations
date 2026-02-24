@@ -111,7 +111,7 @@ class PluginState {
     currentLineAnnotationNotifier.value = _defaultLineAnnotation;
   }
 
-  void updateUndoRedoState() {
+  void updateUndoRedoEnabledState() {
     final lineAnnotations = lineAnnotationsListNotifier.value;
     final textAnnotations = textAnnotationsListNotifier.value;
 

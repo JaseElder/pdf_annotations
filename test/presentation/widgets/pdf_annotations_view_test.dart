@@ -37,7 +37,6 @@ void main() {
           home: Scaffold(
             body: PdfAnnotationsView(
               pdfPath: 'test.pdf',
-              pdfDefaultScale: 1.0,
               startPage: 0,
               initialOffset: Offset.zero,
               initialAnnotationColour: Colors.red,
@@ -45,8 +44,6 @@ void main() {
               initialFontFamily: 'Arial',
               pdfZoom: 1.0,
               pdfAnnotationsViewController: mockController,
-              onZoomUpdate: (_) {},
-              onDefaultScaleUpdate: (_) {},
             ),
           ),
         ),
@@ -194,7 +191,6 @@ void main() {
           home: Scaffold(
             body: PdfAnnotationsView(
               pdfPath: 'test.pdf',
-              pdfDefaultScale: 1.0,
               startPage: 0,
               initialOffset: Offset.zero,
               initialAnnotationColour: Colors.red,
@@ -202,8 +198,6 @@ void main() {
               initialFontFamily: 'Arial',
               pdfZoom: 1.0,
               pdfAnnotationsViewController: mockController,
-              onZoomUpdate: (_) {},
-              onDefaultScaleUpdate: (_) {},
               onPageChanged: (page) => lastPage = page,
               onError: (error) => lastError = error,
             ),
