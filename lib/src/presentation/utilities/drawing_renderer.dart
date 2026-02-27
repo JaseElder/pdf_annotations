@@ -9,12 +9,14 @@ class DrawingRenderer extends CustomPainter {
   final QualityValue annotationQuality;
   final double opacity;
   final ({String id, String type}) latestUndo;
+  final ({String id, String type}) latestRedo;
 
   DrawingRenderer({
     required this.lineAnnotations,
     required this.annotationQuality,
     this.opacity = 1.0,
-    this.latestUndo = (id: '', type: ''),
+    this.latestUndo = const (id: '', type: ''),
+    this.latestRedo = const (id: '', type: ''),
   });
 
   @override
@@ -28,10 +30,13 @@ class DrawingRenderer extends CustomPainter {
     for (var lineAnnotation in lineAnnotations) {
       final line = lineAnnotation.line;
       final isLatestUndo = latestUndo.id == lineAnnotation.id && latestUndo.type == kLineAnnotation;
+      final isLatestRedo = latestRedo.id == lineAnnotation.id && latestRedo.type == kLineAnnotation;
       if (line.isEmpty) continue;
       if (lineAnnotation.isActive || isLatestUndo) {
         paint.color = (isLatestUndo)
             ? lineAnnotation.colour.withValues(alpha: opacity)
+            : (isLatestRedo)
+            ? lineAnnotation.colour.withValues(alpha: 1.0 - opacity)
             : lineAnnotation.colour;
         paint.strokeWidth = lineAnnotation.width;
 

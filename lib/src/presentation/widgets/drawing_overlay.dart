@@ -610,6 +610,10 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
         position = _pluginState.lineAnnotationsListNotifier.activateId(firstInactiveAnnotation.id);
       }
       _pluginState.updateUndoRedoEnabledState();
+      _pluginState.lastRedoNotifier.value = (
+        id: firstInactiveAnnotation.id,
+        type: firstInactiveAnnotation.annotationType,
+      );
       firstInactiveAnnotation.isActive = true;
       if (position != null && !_pluginState.textFocusNode.hasFocus) {
         _setInitialMoveConditions();

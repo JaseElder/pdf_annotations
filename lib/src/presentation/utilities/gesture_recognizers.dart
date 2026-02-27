@@ -9,7 +9,12 @@ class AllowMultipleGestureRecognizer extends PanGestureRecognizer {
       ..onLongPressStart = (details) {
         resolve(.accepted);
         if (onStart != null) {
-          onStart!(DragStartDetails(globalPosition: details.globalPosition, localPosition: details.localPosition));
+          onStart!(
+            DragStartDetails(
+              globalPosition: details.globalPosition,
+              localPosition: details.localPosition,
+            ),
+          );
         }
       };
     _doubleTapRecognizer = DoubleTapGestureRecognizer()..onDoubleTap = () {};

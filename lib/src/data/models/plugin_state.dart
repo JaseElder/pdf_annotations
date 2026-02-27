@@ -37,6 +37,7 @@ class PluginState {
   final fontSizeNotifier = ValueNotifier<double>(16.0);
   final keyboardHeightNotifier = ValueNotifier<double>(0.0);
   final lastUndoNotifier = ValueNotifier<({String id, String type})>((id: '', type: ''));
+  final lastRedoNotifier = ValueNotifier<({String id, String type})>((id: '', type: ''));
   final lineAnnotationsListNotifier = GenericAnnotationsNotifier<LineAnnotation>(
     (original, {bool? isActive}) => original.copyWith(isActive: isActive),
   );

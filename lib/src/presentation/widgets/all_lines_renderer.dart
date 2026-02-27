@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+
 import '../../data/models/plugin_state.dart';
 import '../../utilities/constants.dart';
 import '../utilities/drawing_renderer.dart';
@@ -26,16 +27,19 @@ class _AllLinesRendererState extends State<AllLinesRenderer> with SingleTickerPr
       ..addStatusListener((AnimationStatus status) {
         if (status == .completed) {
           _pluginState.lastUndoNotifier.value = (id: '', type: '');
+          _pluginState.lastRedoNotifier.value = (id: '', type: '');
         }
       });
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _pluginState.lastUndoNotifier.addListener(_fadeLast);
+      _pluginState.lastUndoNotifier.addListener(_fadeLastUndo);
+      _pluginState.lastRedoNotifier.addListener(_fadeLastRedo);
     });
   }
 
   @override
   void dispose() {
-    _pluginState.lastUndoNotifier.removeListener(_fadeLast);
+    _pluginState.lastUndoNotifier.removeListener(_fadeLastUndo);
+    _pluginState.lastRedoNotifier.removeListener(_fadeLastRedo);
     _animationController.dispose();
     super.dispose();
   }
@@ -56,15 +60,21 @@ class _AllLinesRendererState extends State<AllLinesRenderer> with SingleTickerPr
               return ValueListenableBuilder(
                 valueListenable: _pluginState.lastUndoNotifier,
                 builder: (context, lastUndoValue, child) {
-                  return CustomPaint(
-                    isComplex: true,
-                    willChange: true,
-                    painter: DrawingRenderer(
-                      lineAnnotations: annotations,
-                      annotationQuality: _pluginState.annotationQualityNotifier.value,
-                      opacity: opacityValue,
-                      latestUndo: lastUndoValue,
-                    ),
+                  return ValueListenableBuilder(
+                    valueListenable: _pluginState.lastRedoNotifier,
+                    builder: (context, lastRedoValue, child) {
+                      return CustomPaint(
+                        isComplex: true,
+                        willChange: true,
+                        painter: DrawingRenderer(
+                          lineAnnotations: annotations,
+                          annotationQuality: _pluginState.annotationQualityNotifier.value,
+                          opacity: opacityValue,
+                          latestUndo: lastUndoValue,
+                          latestRedo: lastRedoValue,
+                        ),
+                      );
+                    },
                   );
                 },
               );
@@ -76,9 +86,17 @@ class _AllLinesRendererState extends State<AllLinesRenderer> with SingleTickerPr
     );
   }
 
-  void _fadeLast() {
+  void _fadeLastUndo() {
     final undoLast = _pluginState.lastUndoNotifier.value;
     if (undoLast.id != '' && undoLast.type == kLineAnnotation) {
+      _animationController.reset();
+      _animationController.forward();
+    }
+  }
+
+  void _fadeLastRedo() {
+    final redoLast = _pluginState.lastRedoNotifier.value;
+    if (redoLast.id != '' && redoLast.type == kLineAnnotation) {
       _animationController.reset();
       _animationController.forward();
     }
