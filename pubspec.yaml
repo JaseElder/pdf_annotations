@@ -19,6 +19,7 @@ dependencies:
   path: ^1.9.1
   path_provider: ^2.1.5
   native_device_orientation: ^2.1.0
+  keyboard_height_plugin: ^0.2.0
   nanoid: ^1.0.0
   transparent_pointer: ^1.0.1
   logger: ^2.6.2
@@ -28,7 +29,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  pigeon: ^26.1.7
+  pigeon: ^26.1.8
   mocktail: ^1.0.4
 
 flutter:

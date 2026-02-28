@@ -155,14 +155,6 @@ void main() {
         isA<void Function(String)>(),
       );
       expect(
-        verify(() => mockController.setKeyboardHeight = captureAny()).captured.single,
-        isA<void Function(double)>(),
-      );
-      expect(
-        verify(() => mockController.keyboardDismissed = captureAny()).captured.single,
-        isA<void Function()>(),
-      );
-      expect(
         verify(() => mockController.setPopInvoked = captureAny()).captured.single,
         isA<void Function()>(),
       );

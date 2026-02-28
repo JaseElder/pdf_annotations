@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart' as pdf_view;
+import 'package:keyboard_height_plugin/keyboard_height_plugin.dart';
 import 'package:transparent_pointer/transparent_pointer.dart';
 
 import '../../data/models/pdf_font.dart';
@@ -64,12 +65,6 @@ class PdfAnnotationsViewController {
 
   /// Sets the font family for new text annotations.
   late void Function(String fontFamily) setFontFamily;
-
-  /// Notifies the view that the keyboard has been dismissed.
-  late void Function() keyboardDismissed;
-
-  /// Sets the height of the keyboard to adjust the view insets.
-  late void Function(double height) setKeyboardHeight;
 
   /// Registers custom fonts for use in text annotations.
   /// Returns true if registration was successful.
@@ -198,6 +193,13 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
       vsync: this,
     );
 
+    KeyboardHeightPlugin().onKeyboardHeightChanged((double height) {
+      _pluginState.keyboardHeightNotifier.value = height;
+      if (height == 0.0) {
+        _pluginState.textFocusNode.unfocus();
+      }
+    });
+
     widget.pdfAnnotationsViewController.saveAnnotations = _saveAndAddAnnotations;
     widget.pdfAnnotationsViewController.registerFonts = _registerFonts;
     widget.pdfAnnotationsViewController.undo = _undo;
@@ -210,8 +212,6 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
     widget.pdfAnnotationsViewController.setEditMode = _setEditMode;
     widget.pdfAnnotationsViewController.setFontSize = _setFontSize;
     widget.pdfAnnotationsViewController.setFontFamily = _setFontFamily;
-    widget.pdfAnnotationsViewController.setKeyboardHeight = _setKeyboardHeight;
-    widget.pdfAnnotationsViewController.keyboardDismissed = _keyboardDismissed;
     widget.pdfAnnotationsViewController.setPopInvoked = _setPopInvoked;
 
     _pluginState.textFieldShowingNotifier.addListener(_setTextFieldShowing);
@@ -346,19 +346,11 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
     _pluginState.fontFamilyNotifier.value = fontFamily;
   }
 
-  void _setKeyboardHeight(double newHeight) {
-    _pluginState.keyboardHeightNotifier.value = newHeight;
-  }
-
   void _setPopInvoked() {
     _pluginState.popInvokedNotifier.value = true;
     setState(() {
       _showExitProgress = true;
     });
-  }
-
-  void _keyboardDismissed() {
-    _pluginState.textFocusNode.unfocus();
   }
 
   @override
