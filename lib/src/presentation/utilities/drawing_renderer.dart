@@ -27,16 +27,22 @@ class DrawingRenderer extends CustomPainter {
       ..strokeCap = StrokeCap.butt
       ..style = PaintingStyle.stroke;
 
-    for (var lineAnnotation in lineAnnotations) {
+    for (final lineAnnotation in lineAnnotations) {
       final line = lineAnnotation.line;
-      final isLatestUndo = latestUndo.id == lineAnnotation.id && latestUndo.type == kLineAnnotation;
-      final isLatestRedo = latestRedo.id == lineAnnotation.id && latestRedo.type == kLineAnnotation;
       if (line.isEmpty) continue;
-      if (lineAnnotation.isActive || isLatestUndo) {
+      final annotationInherentOpacity = lineAnnotation.colour.a;
+      final isLatestUndo = latestUndo.id == lineAnnotation.id && latestUndo.type == kLineAnnotation;
+      final isLatestRedo =
+          latestRedo.id == lineAnnotation.id &&
+          latestRedo.type == kLineAnnotation &&
+          lineAnnotation.isActive;
+      if (lineAnnotation.isActive || isLatestUndo || isLatestRedo) {
         paint.color = (isLatestUndo)
-            ? lineAnnotation.colour.withValues(alpha: opacity)
+            ? lineAnnotation.colour.withValues(alpha: opacity * annotationInherentOpacity)
             : (isLatestRedo)
-            ? lineAnnotation.colour.withValues(alpha: 1.0 - opacity)
+            ? lineAnnotation.colour.withValues(
+                alpha: annotationInherentOpacity - (opacity * annotationInherentOpacity),
+              )
             : lineAnnotation.colour;
         paint.strokeWidth = lineAnnotation.width;
 

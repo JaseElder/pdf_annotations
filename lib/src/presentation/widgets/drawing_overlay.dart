@@ -223,7 +223,6 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
       builder: (BuildContext context, BoxConstraints constraints) {
         _overlayHeightScaled = constraints.maxHeight * _devPixRatio;
         _overlayWidthScaled = constraints.maxWidth * _devPixRatio;
-        // Future(() => widget.drawingOverlayController?.setOverlayWidthScaled(_overlayWidthScaled));
         return ValueListenableBuilder<EditMode>(
           valueListenable: _pluginState.editModeNotifier,
           builder: (context, currentEditMode, child) {
@@ -308,7 +307,7 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
     }
     _clearUndoList();
     final annotationColor = (_pluginState.lineModeNotifier.value == .highlighter)
-        ? _annotationColour.withValues(alpha: 0.5)
+        ? _annotationColour.withValues(alpha: kHighlighterOpacity)
         : _annotationColour;
 
     _pluginState.currentLineAnnotationNotifier.setCurrent(

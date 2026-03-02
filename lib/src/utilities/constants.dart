@@ -3,3 +3,4 @@ const String kTextAnnotation = 'TextAnnotation';
 const String kLineAnnotation = 'LineAnnotation';
 const String kPdfSuffix = '.pdf';
 const double kKeyboardToolbarHeight = 100.0;
+const double kHighlighterOpacity = 0.5;

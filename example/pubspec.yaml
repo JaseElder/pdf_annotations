@@ -6,7 +6,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 0.0.1
 
 environment:
-  sdk: ^3.6.1
+  sdk: ^3.10.0
 
 dependencies:
   flutter:
@@ -41,3 +41,11 @@ flutter:
 
   assets:
     - assets/sample.pdf
+
+  fonts:
+    - family: Courier Prime
+      fonts:
+        - asset: fonts/CourierPrime-Regular.ttf
+    - family: Google Sans
+      fonts:
+        - asset: fonts/GoogleSans-Regular.ttf

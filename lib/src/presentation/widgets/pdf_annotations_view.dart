@@ -53,6 +53,11 @@ class PdfAnnotationsViewController {
   /// Gets the current scroll position of the PDF view.
   late Offset Function() getPosition;
 
+  /// Gets the path to the baked PDF file.
+  late String Function() getBakedPath;
+
+  late String Function() getBakedFilePath;
+
   /// Sets the current interaction mode (e.g., [EditMode.pan], [EditMode.draw], [EditMode.text]).
   late void Function(EditMode newMode) setEditMode;
 
@@ -174,6 +179,7 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
 
   List<PdfFont> _fontList = [];
   bool _editModeChanged = false;
+  String _bakedFilePath = '';
 
   @override
   void initState() {
@@ -209,6 +215,7 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
     widget.pdfAnnotationsViewController.setLineMode = _setLineMode;
     widget.pdfAnnotationsViewController.setPosition = _setOffset;
     widget.pdfAnnotationsViewController.getPosition = _getOffset;
+    widget.pdfAnnotationsViewController.getBakedPath = _getBakedFilePath;
     widget.pdfAnnotationsViewController.setEditMode = _setEditMode;
     widget.pdfAnnotationsViewController.setFontSize = _setFontSize;
     widget.pdfAnnotationsViewController.setFontFamily = _setFontFamily;
@@ -330,6 +337,8 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
   }
 
   Offset _getOffset() => _pluginState.pdfOffsetNotifier.value;
+
+  String _getBakedFilePath() => _bakedFilePath;
 
   void _setEditMode(EditMode mode) {
     setState(() {
@@ -485,10 +494,10 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
     if (pdfPath == '') {
       return false;
     }
-    final bakedPath = await _createBakedFile(pdfPath);
+    _bakedFilePath = await _createBakedFile(pdfPath);
     try {
       bool result = await PdfAnnotationsRepositoryImpl().addAnnotations(
-        fileName: bakedPath,
+        fileName: _bakedFilePath,
         lineAnnotations: _pluginState.lineAnnotationsListNotifier.value,
         textAnnotations: _pluginState.textAnnotationsListNotifier.value,
         fonts: _fontList,

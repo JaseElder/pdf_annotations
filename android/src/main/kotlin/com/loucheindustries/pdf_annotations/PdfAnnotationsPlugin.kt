@@ -8,6 +8,7 @@ import android.graphics.Typeface
 import android.text.TextPaint
 import android.util.Log
 import android.util.SizeF
+import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import com.tom_roush.pdfbox.cos.COSArray
 import com.tom_roush.pdfbox.cos.COSFloat
 import com.tom_roush.pdfbox.cos.COSName
@@ -41,6 +42,7 @@ class PdfAnnotationsPlugin : FlutterPlugin {
         context = flutterPluginBinding.applicationContext
         val api = PdfAnnotationsImplementation(context)
         PdfAnnotationsApi.setUp(flutterPluginBinding.binaryMessenger, api)
+        PDFBoxResourceLoader.init(context)
     }
 
 
@@ -88,7 +90,6 @@ private class PdfAnnotationsImplementation(context: Context) : PdfAnnotationsApi
 
         val annotationHeight: Float
             get() {
-                Log.w(TAG, "top: ${fm.top} bottom: ${fm.bottom} desc: ${fm.descent} asc: ${fm.ascent} leading: ${fm.leading}")
                 return fm.bottom - fm.top
             }
     }

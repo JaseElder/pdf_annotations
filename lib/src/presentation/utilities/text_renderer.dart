@@ -20,13 +20,14 @@ class TextRenderer extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final clipRect = Rect.fromLTWH(0, 0, size.width, size.height);
     canvas.clipRect(clipRect);
-    for (int j = 0; j < textAnnotations.length; j++) {
-      final textAnnotation = textAnnotations[j];
-      final isLatestUndo =
-          latestUndo.id == textAnnotation?.id && latestUndo.type == kTextAnnotation;
+    for (final textAnnotation in textAnnotations) {
+      if (textAnnotation == null) continue;
+      final isLatestUndo = latestUndo.id == textAnnotation.id && latestUndo.type == kTextAnnotation;
       final isLatestRedo =
-          latestRedo.id == textAnnotation?.id && latestRedo.type == kTextAnnotation;
-      if (textAnnotation!.isActive || isLatestUndo) {
+          latestRedo.id == textAnnotation.id &&
+          latestRedo.type == kTextAnnotation &&
+          textAnnotation.isActive;
+      if (textAnnotation.isActive || isLatestUndo || isLatestRedo) {
         var textSpan = TextSpan(
           text: textAnnotation.text,
           style: TextStyle(
