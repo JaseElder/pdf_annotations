@@ -63,6 +63,10 @@ class PluginState {
 
   FocusNode get textFocusNode => textFocusNodeNotifier.value;
 
+  bool get isPopInvoked => popInvokedNotifier.value;
+
+  Color get annotationColour => annotationColourNotifier.value;
+
   final LineAnnotation _defaultLineAnnotation = LineAnnotation([], Colors.transparent, 0.0);
   Color draggingTextFieldBackgroundColor = Colors.black;
 
@@ -74,9 +78,6 @@ class PluginState {
     required double initialFontSize,
     required String initialFontFamily,
   }) {
-    _textsStreamController.add(textAnnotationsListNotifier.value);
-    _linesStreamController.add(lineAnnotationsListNotifier.value);
-    _currentLineStreamController.add(currentLineAnnotationNotifier.value);
     _jsonAnnotationsRepository = JsonAnnotationsRepositoryImpl(
       savedAnnotationsJsonSuffix: savedAnnotationsJsonSuffix,
     );

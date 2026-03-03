@@ -199,12 +199,9 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
       vsync: this,
     );
 
-    KeyboardHeightPlugin().onKeyboardHeightChanged((double height) {
-      _pluginState.keyboardHeightNotifier.value = height;
-      if (height == 0.0) {
-        _pluginState.textFocusNode.unfocus();
-      }
-    });
+    KeyboardHeightPlugin().onKeyboardHeightChanged(
+      (double height) => _pluginState.keyboardHeightNotifier.value = height,
+    );
 
     widget.pdfAnnotationsViewController.saveAnnotations = _saveAndAddAnnotations;
     widget.pdfAnnotationsViewController.registerFonts = _registerFonts;

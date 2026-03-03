@@ -257,13 +257,13 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
   }
 
   Future<void> _keyboardHeightUpdate() async {
-    if (!_pluginState.popInvokedNotifier.value) {
+    if (!_pluginState.isPopInvoked) {
       await _handleKeyboardHeight(_pluginState.keyboardHeightNotifier.value);
     }
   }
 
   void _setAnnotationColour() {
-    _annotationColour = _pluginState.annotationColourNotifier.value;
+    _annotationColour = _pluginState.annotationColour;
     if (_pluginState.editMode == .text && _currentTextAnnotation != null) {
       _currentTextAnnotation = _currentTextAnnotation?.copyWith(colour: _annotationColour);
     }
