@@ -67,6 +67,7 @@ void main() {
         lineAnnotations: lineAnnotations,
         textAnnotations: textAnnotations,
         fonts: fonts,
+        annotationQuality: .high,
         pdfPageDims: const Offset(200, 300),
         totalPdfLength: 300,
         viewportOffset: Offset.zero,

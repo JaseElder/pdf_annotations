@@ -27,6 +27,7 @@ class JsonAnnotationsRepositoryImpl implements JsonAnnotationsRepository {
     required double overlayWidthScaled,
     required String pdfPath,
     required List<AddedAnnotation> addedAnnotations,
+    required QualityValue annotationQuality,
   }) async {
     bool noAnnotationIsActive =
         lineAnnotations.every((annotation) => !annotation.isActive) &&
@@ -42,6 +43,7 @@ class JsonAnnotationsRepositoryImpl implements JsonAnnotationsRepository {
       lineAnnotations: lineAnnotations,
       vpPosition: vpPosition,
       addedAnnotations: addedAnnotations,
+      annotationQuality: annotationQuality,
     );
 
     try {
@@ -90,6 +92,7 @@ class JsonAnnotationsRepositoryImpl implements JsonAnnotationsRepository {
     required List<LineAnnotation> lineAnnotations,
     required Offset vpPosition,
     required List<AddedAnnotation> addedAnnotations,
+    required QualityValue annotationQuality,
   }) async {
     final orientation = await NativeDeviceOrientationCommunicator().orientation();
     return {
@@ -98,6 +101,7 @@ class JsonAnnotationsRepositoryImpl implements JsonAnnotationsRepository {
       'texts': textAnnotations.map((t) => t.toJsonWithTransform(vpPosition)).toList(),
       'lines': lineAnnotations.map((l) => l.toJsonWithTransform(vpPosition)).toList(),
       'added': addedAnnotations.map((added) => added.toJson()).toList(),
+      'quality': annotationQuality.name,
     };
   }
 
@@ -115,6 +119,7 @@ class JsonAnnotationsRepositoryImpl implements JsonAnnotationsRepository {
       List<LineAnnotation> lineAnnotations,
       List<TextAnnotation> textAnnotations,
       List<AddedAnnotation> addedAnnotations,
+      QualityValue annotationQuality,
     )?
   >
   loadAnnotationsState({
@@ -131,6 +136,13 @@ class JsonAnnotationsRepositoryImpl implements JsonAnnotationsRepository {
       if (await savedAnnotationsFile.exists()) {
         final annotations = await savedAnnotationsFile.readAsString();
         final decodedAnnotations = jsonDecode(annotations) as Map<String, dynamic>;
+
+        final String qualityFromFile = decodedAnnotations['quality'] ?? 'high';
+
+        final QualityValue quality = QualityValue.values.firstWhere(
+          (element) => element.name == qualityFromFile,
+          orElse: () => QualityValue.high,
+        );
 
         final String orientationFromFile = decodedAnnotations['orientation'] ?? 'portrait';
         final double widthFromFile = decodedAnnotations['width'] ?? shortestSideEstimate;
@@ -169,7 +181,7 @@ class JsonAnnotationsRepositoryImpl implements JsonAnnotationsRepository {
                 .toList() ??
             [];
 
-        return (lineAnnotations, textAnnotations, addedAnnotations);
+        return (lineAnnotations, textAnnotations, addedAnnotations, quality);
       }
     } catch (e) {
       // widget.onError?.call(e);

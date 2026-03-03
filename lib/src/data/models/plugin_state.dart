@@ -146,6 +146,7 @@ class PluginState {
       vpPosition: viewportPosition,
       overlayWidthScaled: scaledOverlayWidth,
       pdfPath: pdfPath,
+      annotationQuality: annotationQualityNotifier.value,
     );
   }
 
@@ -166,7 +167,7 @@ class PluginState {
       return [];
     }
 
-    var (lineAnnotations, textAnnotations, addedAnnotations) = loadedData;
+    var (lineAnnotations, textAnnotations, addedAnnotations, annotationQuality) = loadedData;
 
     if (lineAnnotations.isNotEmpty) {
       lineAnnotationsListNotifier.addAnnotations(lineAnnotations);
@@ -174,6 +175,7 @@ class PluginState {
     if (textAnnotations.isNotEmpty) {
       textAnnotationsListNotifier.addAnnotations(textAnnotations);
     }
+    annotationQualityNotifier.value = annotationQuality;
     return addedAnnotations;
   }
 }

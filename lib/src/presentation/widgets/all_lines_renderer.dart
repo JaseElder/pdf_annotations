@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../../data/models/plugin_state.dart';
 import '../../utilities/constants.dart';
 import '../utilities/drawing_renderer.dart';
+import '../utilities/value_listenable_builder4.dart';
 
 class AllLinesRenderer extends StatefulWidget {
   const AllLinesRenderer({super.key});
@@ -54,31 +55,32 @@ class _AllLinesRendererState extends State<AllLinesRenderer> with SingleTickerPr
         if (!snapshot.hasData) return Container();
         final annotations = snapshot.data!;
         if (annotations.isNotEmpty) {
-          return ValueListenableBuilder(
-            valueListenable: _pluginState.opacityValueNotifier,
-            builder: (context, opacityValue, child) {
-              return ValueListenableBuilder(
-                valueListenable: _pluginState.lastUndoNotifier,
-                builder: (context, lastUndoValue, child) {
-                  return ValueListenableBuilder(
-                    valueListenable: _pluginState.lastRedoNotifier,
-                    builder: (context, lastRedoValue, child) {
-                      return CustomPaint(
-                        isComplex: true,
-                        willChange: true,
-                        painter: DrawingRenderer(
-                          lineAnnotations: annotations,
-                          annotationQuality: _pluginState.annotationQualityNotifier.value,
-                          opacity: opacityValue,
-                          latestUndo: lastUndoValue,
-                          latestRedo: lastRedoValue,
-                        ),
-                      );
-                    },
+          return ValueListenableBuilder4(
+            first: _pluginState.annotationQualityNotifier,
+            second: _pluginState.opacityValueNotifier,
+            third: _pluginState.lastUndoNotifier,
+            fourth: _pluginState.lastRedoNotifier,
+            builder:
+                (
+                  context,
+                  annotationQualityValue,
+                  opacityValue,
+                  lastUndoValue,
+                  lastRedoValue,
+                  child,
+                ) {
+                  return CustomPaint(
+                    isComplex: true,
+                    willChange: true,
+                    painter: DrawingRenderer(
+                      lineAnnotations: annotations,
+                      annotationQuality: annotationQualityValue,
+                      opacity: opacityValue,
+                      latestUndo: lastUndoValue,
+                      latestRedo: lastRedoValue,
+                    ),
                   );
                 },
-              );
-            },
           );
         }
         return Container();

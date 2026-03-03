@@ -1,9 +1,9 @@
 import 'dart:ui';
 
+import '../../utilities/enums.dart';
 import '../entities/added_annotation.dart';
 import '../entities/line_annotation.dart';
 import '../entities/text_annotation.dart';
-import '../../utilities/enums.dart';
 
 abstract class JsonAnnotationsRepository {
   /// Saves the current state of editable annotations.
@@ -14,6 +14,7 @@ abstract class JsonAnnotationsRepository {
     required List<LineAnnotation> lineAnnotations,
     required List<TextAnnotation> textAnnotations,
     required List<AddedAnnotation> addedAnnotations,
+    required QualityValue annotationQuality,
   });
 
   /// Loads the previously saved state of editable annotations.
@@ -23,6 +24,7 @@ abstract class JsonAnnotationsRepository {
       List<LineAnnotation> lineAnnotations,
       List<TextAnnotation> textAnnotations,
       List<AddedAnnotation> addedAnnotations,
+      QualityValue annotationQuality,
     )?
   >
   loadAnnotationsState({

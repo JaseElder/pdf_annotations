@@ -75,6 +75,7 @@ void main() {
         overlayWidthScaled: overlayWidthScaled,
         pdfPath: pdfPath,
         addedAnnotations: addedAnnotations,
+        annotationQuality: .low,
       );
 
       expect(result, SaveStateResult.fileCreated);
@@ -87,10 +88,11 @@ void main() {
       );
 
       expect(loadedData, isNotNull);
-      final (loadedLines, loadedTexts, loadedAdded) = loadedData!;
+      final (loadedLines, loadedTexts, loadedAdded, annotationQuality) = loadedData!;
       expect(loadedLines.length, 1);
       expect(loadedTexts.length, 1);
       expect(loadedAdded.length, 2);
+      expect(annotationQuality, QualityValue.low);
     });
 
     test('should save annotations and save again when annotations change', () async {
@@ -112,6 +114,7 @@ void main() {
         overlayWidthScaled: overlayWidthScaled,
         pdfPath: pdfPath,
         addedAnnotations: addedAnnotations,
+        annotationQuality: .low,
       );
 
       expect(result, SaveStateResult.fileCreated);
@@ -123,6 +126,7 @@ void main() {
         overlayWidthScaled: overlayWidthScaled,
         pdfPath: pdfPath,
         addedAnnotations: addedAnnotations,
+        annotationQuality: .low,
       );
 
       expect(result2, SaveStateResult.noChange);
@@ -135,10 +139,11 @@ void main() {
       );
 
       expect(loadedData, isNotNull);
-      final (loadedLines, loadedTexts, loadedAdded) = loadedData!;
+      final (loadedLines, loadedTexts, loadedAdded, annotationQuality) = loadedData!;
       expect(loadedLines.length, 1);
       expect(loadedTexts.length, 1);
       expect(loadedAdded.length, 2);
+      expect(annotationQuality, QualityValue.low);
     });
 
     test('should save all inactive annotations thus not loading', () async {
@@ -160,6 +165,7 @@ void main() {
         overlayWidthScaled: overlayWidthScaled,
         pdfPath: pdfPath,
         addedAnnotations: addedAnnotations,
+        annotationQuality: .low,
       );
 
       expect(result, SaveStateResult.noChange);

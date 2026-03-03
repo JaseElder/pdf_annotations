@@ -66,6 +66,8 @@ class DrawingRenderer extends CustomPainter {
 
   @override
   bool shouldRepaint(DrawingRenderer oldDelegate) {
-    return oldDelegate.opacity != opacity || oldDelegate.lineAnnotations != lineAnnotations;
+    return oldDelegate.opacity != opacity ||
+        oldDelegate.lineAnnotations != lineAnnotations ||
+        oldDelegate.annotationQuality != annotationQuality;
   }
 }

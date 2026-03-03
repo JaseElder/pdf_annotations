@@ -1,8 +1,9 @@
-import 'dart:ui';
+import 'package:flutter/widgets.dart';
 
-import 'package:pdf_annotations/src/data/models/pdf_font.dart';
-import 'package:pdf_annotations/src/domain/entities/line_annotation.dart';
-import 'package:pdf_annotations/src/domain/entities/text_annotation.dart';
+import '../../data/models/pdf_font.dart';
+import '../../utilities/enums.dart';
+import '../entities/line_annotation.dart';
+import '../entities/text_annotation.dart';
 
 abstract class PdfAnnotationsRepository {
   Future<bool> addAnnotations({
@@ -10,6 +11,7 @@ abstract class PdfAnnotationsRepository {
     required List<LineAnnotation> lineAnnotations,
     required List<TextAnnotation> textAnnotations,
     required List<PdfFont> fonts,
+    required QualityValue annotationQuality,
     required Offset pdfPageDims,
     required double totalPdfLength,
     required Offset viewportOffset,

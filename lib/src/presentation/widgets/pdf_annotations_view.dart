@@ -498,6 +498,7 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
         lineAnnotations: _pluginState.lineAnnotationsListNotifier.value,
         textAnnotations: _pluginState.textAnnotationsListNotifier.value,
         fonts: _fontList,
+        annotationQuality: _pluginState.annotationQualityNotifier.value,
         pdfPageDims: Offset(currentPageSize.width, currentPageSize.height),
         totalPdfLength: currentPageSize.height * noOfPages,
         viewportOffset: vpOffset,

@@ -1,11 +1,12 @@
 import 'dart:ui';
 
 import 'package:flutter/services.dart';
-import 'package:pdf_annotations/generated/pdf_annotations_api.dart';
 
+import '../../../generated/pdf_annotations_api.dart';
 import '../../domain/entities/line_annotation.dart';
 import '../../domain/entities/text_annotation.dart';
 import '../../domain/repositories/pdf_annotations_repository.dart';
+import '../../utilities/enums.dart';
 import '../models/pdf_font.dart';
 
 class PdfAnnotationsRepositoryImpl implements PdfAnnotationsRepository {
@@ -25,6 +26,7 @@ class PdfAnnotationsRepositoryImpl implements PdfAnnotationsRepository {
     required List<LineAnnotation> lineAnnotations,
     required List<TextAnnotation> textAnnotations,
     required List<PdfFont> fonts,
+    required QualityValue annotationQuality,
     required Offset pdfPageDims,
     required double totalPdfLength,
     required Offset viewportOffset,
@@ -36,6 +38,7 @@ class PdfAnnotationsRepositoryImpl implements PdfAnnotationsRepository {
           .map(
             (lineAnnotation) => _addTranslatedDrawingAnnotation(
               lineAnnotation,
+              annotationQuality,
               viewportOffset,
               overlayScale,
               totalPdfLength,
@@ -72,13 +75,14 @@ class PdfAnnotationsRepositoryImpl implements PdfAnnotationsRepository {
 
   Map<String, Object> _addTranslatedDrawingAnnotation(
     LineAnnotation annotation,
+    QualityValue annotationQuality,
     Offset vpOffset,
     double overlayToPdfScale,
     double totalPdfLength,
   ) {
-    // TODO do we really need this conversion? Does it look any better really?
-    // final extractedLine = _extractPointsFromPath(_createPathFromLine(annotation.line));
-    final extractedLine = annotation.line;
+    final extractedLine = (annotationQuality == QualityValue.high)
+        ? _extractPointsFromPath(_createPathFromLine(annotation.line), precision: 3)
+        : annotation.line;
     List<List<double>> translatedPath = extractedLine
         .map(
           (offset) => [
@@ -94,7 +98,6 @@ class PdfAnnotationsRepositoryImpl implements PdfAnnotationsRepository {
     };
   }
 
-  //coverage:ignore-start
   Path _createPathFromLine(List<Offset> line) {
     var realPath = Path();
     realPath.moveTo(line.first.dx, line.first.dy);
@@ -123,7 +126,6 @@ class PdfAnnotationsRepositoryImpl implements PdfAnnotationsRepository {
       yield metric.getTangentForOffset(distance)?.position ?? Offset.zero;
     }
   }
-  //coverage:ignore-end
 
   List<int> _colorToList(Color color) {
     return [
