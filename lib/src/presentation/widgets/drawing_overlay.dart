@@ -183,7 +183,7 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
     _pluginState.annotationColourNotifier.addListener(_setAnnotationColour);
     _pluginState.lineModeNotifier.addListener(_setLineWidth);
     _pluginState.textInsertionPointNotifier.addListener(_updateTextInsertionPoint);
-    _pluginState.editModeNotifier.addListener(_setInitialMoveConditions);
+    _pluginState.editModeNotifier.addListener(_handleEditModeChange);
     _pluginState.currentLineAnnotationNotifier.addListener(_updateCurrentLineStream);
     _pluginState.textAnnotationsListNotifier.addListener(_updateTextsStream);
     _pluginState.lineAnnotationsListNotifier.addListener(_updateLinesStream);
@@ -205,7 +205,7 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
     _pluginState.annotationColourNotifier.removeListener(_setAnnotationColour);
     _pluginState.lineModeNotifier.removeListener(_setLineWidth);
     _pluginState.textInsertionPointNotifier.removeListener(_updateTextInsertionPoint);
-    _pluginState.editModeNotifier.removeListener(_setInitialMoveConditions);
+    _pluginState.editModeNotifier.removeListener(_handleEditModeChange);
     _pluginState.currentLineAnnotationNotifier.removeListener(_updateCurrentLineStream);
     _pluginState.textAnnotationsListNotifier.removeListener(_updateTextsStream);
     _pluginState.lineAnnotationsListNotifier.removeListener(_updateLinesStream);
@@ -285,6 +285,14 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
     _startOfPanningLines = _pluginState.lineAnnotationsListNotifier.value;
     _startOfPanningTexts = _pluginState.textAnnotationsListNotifier.value;
     _vpPositionAtStartOfPanning = _vpPosition;
+  }
+
+  void _handleEditModeChange() {
+    _setInitialMoveConditions();
+    if (_pluginState.editModeNotifier.value != EditMode.text &&
+        _textFieldController.text.trim().isNotEmpty) {
+      _finaliseTexting();
+    }
   }
 
   void _updateCurrentLineStream() {
