@@ -32,6 +32,10 @@ dev_dependencies:
   pigeon: ^26.1.8
   mocktail: ^1.0.4
 
+# tests won't run without this override, at least for objective_c 9.2.0-9.3.0
+dependency_overrides:
+  objective_c: 9.1.0
+
 flutter:
   plugin:
     platforms:

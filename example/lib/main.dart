@@ -19,6 +19,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String _pdfPath = '';
+  String _originalPdfPath = '';
   bool _isLoading = true;
   double _pdfScale = 1.0;
   Offset _pdfOffset = Offset.zero;
@@ -39,7 +40,7 @@ class _MyAppState extends State<MyApp> {
       final bytes = data.buffer.asUint8List();
       await file.writeAsBytes(bytes, flush: true);
 
-      _pdfPath = file.path;
+      _originalPdfPath = _pdfPath = file.path;
     } catch (e) {
       debugPrint('Error initializing PDF: $e');
     } finally {
@@ -67,8 +68,11 @@ class _MyAppState extends State<MyApp> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        EditPage(pdfPath: _pdfPath, pdfZoom: _pdfScale, pdfOffset: _pdfOffset),
+                    builder: (context) => EditPage(
+                      pdfPath: _originalPdfPath,
+                      pdfZoom: _pdfScale,
+                      pdfOffset: _pdfOffset,
+                    ),
                   ),
                 ).then((result) {
                   if (result is String && result.isNotEmpty) {
@@ -119,10 +123,11 @@ class _EditPageState extends State<EditPage> {
 
   String get _pdfPath => widget.pdfPath;
 
-  EditMode _editMode = EditMode.pan;
-  LineMode _lineMode = LineMode.pen;
+  EditMode _editMode = .pan;
+  LineMode _lineMode = .pen;
   String _fontFamily = 'Google Sans';
   double _fontSize = 18.0;
+  QualityValue _annotationQuality = .high;
 
   @override
   Widget build(BuildContext context) {
@@ -160,6 +165,19 @@ class _EditPageState extends State<EditPage> {
                   Column(
                     mainAxisAlignment: .center,
                     children: [
+                      SegmentedButton<QualityValue>(
+                        segments: <ButtonSegment<QualityValue>>[
+                          ButtonSegment<QualityValue>(value: .low, label: const Text('Low')),
+                          ButtonSegment<QualityValue>(value: .high, label: const Text('High')),
+                        ],
+                        selected: <QualityValue>{_annotationQuality},
+                        onSelectionChanged: (Set<QualityValue> newSelection) {
+                          setState(() {
+                            _annotationQuality = newSelection.first;
+                          });
+                          _controller.setAnnotationQuality(_annotationQuality);
+                        },
+                      ),
                       SegmentedButton<EditMode>(
                         segments: const <ButtonSegment<EditMode>>[
                           ButtonSegment<EditMode>(
@@ -182,11 +200,11 @@ class _EditPageState extends State<EditPage> {
                         onSelectionChanged: (Set<EditMode> newSelection) {
                           setState(() {
                             _editMode = newSelection.first;
-                            _controller.setEditMode(_editMode);
-                            if (_editMode == .text) {
-                              _controller.setFontFamily(_fontFamily);
-                            }
                           });
+                          _controller.setEditMode(_editMode);
+                          if (_editMode == .text) {
+                            _controller.setFontFamily(_fontFamily);
+                          }
                         },
                       ),
                       _editMode == .draw
@@ -256,6 +274,7 @@ class _EditPageState extends State<EditPage> {
                       initialFontFamily: _fontFamily,
                       pdfZoom: widget.pdfZoom,
                       pdfAnnotationsViewController: _controller,
+                      onAnnotationQualityChanged: _onAnnotationQualityChanged,
                       onPageChanged: (page) => debugPrint('Page: $page'),
                       onError: (error) => debugPrint('Error: $error'),
                     ),
@@ -264,5 +283,11 @@ class _EditPageState extends State<EditPage> {
               ),
             ),
     );
+  }
+
+  void _onAnnotationQualityChanged(QualityValue quality) {
+    setState(() {
+      _annotationQuality = quality;
+    });
   }
 }

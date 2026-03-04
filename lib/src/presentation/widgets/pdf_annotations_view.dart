@@ -19,6 +19,7 @@ typedef ZoomUpdateCallback = void Function(double newZoom);
 typedef DefaultScaleUpdateCallback = void Function(double newScale);
 typedef OffsetChangedCallback = void Function(Offset newOffset);
 typedef TextFieldShowingCallback = void Function(bool showing);
+typedef QualityChangedCallback = void Function(QualityValue newQuality);
 
 /// Controller for [PdfAnnotationsView].
 ///
@@ -105,6 +106,7 @@ class PdfAnnotationsView extends StatefulWidget {
     this.onPageChanged,
     this.onOffsetChanged,
     this.onTextFieldShowing,
+    this.onAnnotationQualityChanged,
     this.onError,
     this.onPageError,
   });
@@ -153,6 +155,9 @@ class PdfAnnotationsView extends StatefulWidget {
 
   /// Callback triggered when a text field visibility changes.
   final TextFieldShowingCallback? onTextFieldShowing;
+
+  /// Callback triggered when the annotation quality changes.
+  final QualityChangedCallback? onAnnotationQualityChanged;
 
   /// Callback triggered when a general error occurs.
   final ErrorCallback? onError;
@@ -221,6 +226,7 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
     _pluginState.textFieldShowingNotifier.addListener(_setTextFieldShowing);
     _pluginState.undoEnabledNotifier.addListener(_onUndoAvailabilityChanged);
     _pluginState.redoEnabledNotifier.addListener(_onRedoAvailabilityChanged);
+    _pluginState.annotationQualityNotifier.addListener(_onAnnotationQualityChanged);
   }
 
   @override
@@ -228,6 +234,7 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
     _pluginState.textFieldShowingNotifier.removeListener(_setTextFieldShowing);
     _pluginState.undoEnabledNotifier.removeListener(_onUndoAvailabilityChanged);
     _pluginState.redoEnabledNotifier.removeListener(_onRedoAvailabilityChanged);
+    _pluginState.annotationQualityNotifier.removeListener(_onAnnotationQualityChanged);
     _pdfDocViewController.dispose();
     _drawingOverlayController.dispose();
     _animationController.dispose();
@@ -286,17 +293,14 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
   void _setTextFieldShowing() =>
       widget.onTextFieldShowing?.call(_pluginState.textFieldShowingNotifier.value);
 
-  void _onUndoAvailabilityChanged() {
-    widget.pdfAnnotationsViewController.onUndoAvailabilityChanged?.call(
-      _pluginState.undoEnabledNotifier.value,
-    );
-  }
+  void _onAnnotationQualityChanged() =>
+      widget.onAnnotationQualityChanged?.call(_pluginState.annotationQualityNotifier.value);
 
-  void _onRedoAvailabilityChanged() {
-    widget.pdfAnnotationsViewController.onRedoAvailabilityChanged?.call(
-      _pluginState.redoEnabledNotifier.value,
-    );
-  }
+  void _onUndoAvailabilityChanged() => widget.pdfAnnotationsViewController.onUndoAvailabilityChanged
+      ?.call(_pluginState.undoEnabledNotifier.value);
+
+  void _onRedoAvailabilityChanged() => widget.pdfAnnotationsViewController.onRedoAvailabilityChanged
+      ?.call(_pluginState.redoEnabledNotifier.value);
 
   void _onError(dynamic error) => widget.onError?.call(error);
 
