@@ -16,7 +16,6 @@ import 'drawing_overlay.dart';
 import 'pdf_doc_view.dart';
 
 typedef ZoomUpdateCallback = void Function(double newZoom);
-typedef DefaultScaleUpdateCallback = void Function(double newScale);
 typedef OffsetChangedCallback = void Function(Offset newOffset);
 typedef TextFieldShowingCallback = void Function(bool showing);
 typedef QualityChangedCallback = void Function(QualityValue newQuality);
@@ -184,7 +183,6 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
 
   List<PdfFont> _fontList = [];
   bool _editModeChanged = false;
-  String _bakedFilePath = '';
 
   @override
   void initState() {
@@ -256,7 +254,6 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
     });
     // reset the pdf offset in case the pdf on the live view was zoomed
     var zoom = widget.pdfZoom;
-    final pdfOffset = widget.initialOffset;
 
     if (zoom == 0.0) {
       zoom = await _pdfViewController.getScale();
@@ -265,10 +262,9 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
     if (zoom == 0.0) {
       return;
     }
-    final pdfOffsetNormalised = Offset(0.0, pdfOffset.dy / zoom);
+    final pdfOffsetNormalised = Offset(0.0, widget.initialOffset.dy / zoom);
     _pluginState.pdfOffsetNotifier.value = pdfOffsetNormalised;
     await _pdfViewController.setPosition(pdfOffsetNormalised);
-    await _pdfViewController.setScale(1.0);
     widget.onOffsetChanged?.call(pdfOffsetNormalised);
   }
 
@@ -339,7 +335,16 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
 
   Offset _getOffset() => _pluginState.pdfOffsetNotifier.value;
 
-  String _getBakedFilePath() => _bakedFilePath;
+  String _getBakedFilePath() {
+    final pdfPath = widget.pdfPath;
+    final position = pdfPath.lastIndexOf(kPdfSuffix).clamp(0, pdfPath.length);
+    final bakedPath = pdfPath.replaceFirst(kPdfSuffix, widget.bakedPdfSuffix, position);
+    if (File(bakedPath).existsSync()) {
+      return bakedPath;
+    } else {
+      return '';
+    }
+  }
 
   void _setEditMode(EditMode mode) {
     setState(() {
@@ -423,7 +428,7 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
       return;
     }
     final vpPosition = await _pdfViewController.getPosition();
-    final finishingYPos = vpPosition.dy - adjustedHeight * _devPixRatio;
+    final finishingYPos = vpPosition.dy - adjustedHeight;
 
     if (_pluginState.popInvokedNotifier.value) {
       _pdfViewController.setPosition(Offset(0.0, finishingYPos));
@@ -453,9 +458,7 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
     switch (annotationsSavedToJsonResult) {
       case .fileDeleted:
         final pdfPath = widget.pdfPath;
-        if (pdfPath.isNotEmpty) {
-          await _createBakedFile(pdfPath);
-        }
+        await _deleteBakedFile(pdfPath);
         _pdfDocViewController.setNewlyEdited();
         return true;
       case .fileCreated:
@@ -477,28 +480,28 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
 
   Future<bool> _addAnnotationsToPdf() async {
     logger.w('start add annotations ${DateTime.now()}');
+    final pdfPath = widget.pdfPath;
+    if (pdfPath == '') {
+      return false;
+    }
+
     if (_pdfViewController == null) {
       return false;
     }
+
     final (currentPageSize, position) = await (
       _pdfViewController.getCurrentPageSize(),
       _pdfViewController.getPosition(),
     ).wait;
     final noOfPages = await _pdfViewController.getPageCount() ?? 1;
     final double overlayScale =
-        currentPageSize.width / (_drawingOverlayController.getOverlayWidthScaled());
-    var vpOffset = -position;
-    if (Platform.isIOS) {
-      vpOffset *= overlayScale;
-    }
-    final pdfPath = widget.pdfPath;
-    if (pdfPath == '') {
-      return false;
-    }
-    _bakedFilePath = await _createBakedFile(pdfPath);
+        currentPageSize.width / (_drawingOverlayController.getOverlayWidthScaled()) * _devPixRatio;
+    var vpOffset = -position * overlayScale;
+
+    final bakedFilePath = await _createBakedFile(pdfPath);
     try {
       bool result = await PdfAnnotationsRepositoryImpl().addAnnotations(
-        fileName: _bakedFilePath,
+        fileName: bakedFilePath,
         lineAnnotations: _pluginState.lineAnnotationsListNotifier.value,
         textAnnotations: _pluginState.textAnnotationsListNotifier.value,
         fonts: _fontList,
@@ -506,7 +509,7 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
         pdfPageDims: Offset(currentPageSize.width, currentPageSize.height),
         totalPdfLength: currentPageSize.height * noOfPages,
         viewportOffset: vpOffset,
-        overlayScale: overlayScale * _devPixRatio,
+        overlayScale: overlayScale,
       );
       logger.w('end add annotations ${DateTime.now()}');
       return result;
@@ -521,5 +524,20 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
     final bakedPath = pdfPath.replaceFirst(kPdfSuffix, widget.bakedPdfSuffix, position);
     await file.copy(bakedPath);
     return bakedPath;
+  }
+
+  Future<bool> _deleteBakedFile(String pdfPath) async {
+    final position = pdfPath.lastIndexOf(kPdfSuffix).clamp(0, pdfPath.length);
+    final bakedPath = pdfPath.replaceFirst(kPdfSuffix, widget.bakedPdfSuffix, position);
+    try {
+      final file = File(bakedPath);
+      if (await file.exists()) {
+        await file.delete();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
   }
 }

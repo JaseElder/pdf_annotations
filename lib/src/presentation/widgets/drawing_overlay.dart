@@ -82,7 +82,6 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
   Offset _startOfTextEntryInsertionPoint = .zero;
   Offset _vpPositionAtStartOfPanning = .zero;
   Offset _vpPosition = .zero;
-  late double _invPixRatio;
   late double _devPixRatio;
   List<AddedAnnotation> _addedAnnotations = [];
   late final AnimationController _animationController;
@@ -240,17 +239,29 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
 
   void _initializePixRatios() {
     _devPixRatio = MediaQuery.devicePixelRatioOf(context);
-    _invPixRatio = 1 / _devPixRatio;
   }
 
   void _updateViewportPosition() {
-    _vpPosition = _vpPositionAtStartOfPanning = _pluginState.pdfOffsetNotifier.value * _invPixRatio;
+    _vpPosition = _vpPositionAtStartOfPanning = _pluginState.pdfOffsetNotifier.value;
   }
 
   void _moveByPanning() {
     if (!_keyboardActive) {
-      _vpPosition = _pluginState.pdfOffsetNotifier.value * _invPixRatio;
-      final delta = _vpPosition - _vpPositionAtStartOfPanning;
+      final newOffset = _pluginState.pdfOffsetNotifier.value;
+
+      // If the delta is extremely massive (e.g. > 50 pixels instantly), it is
+      // practically impossible for it to be a user pan frame. This happens when
+      // the native PDF view recalculates its entire coordinate space due to a
+      // layout resize (like the SegmentedButton disappearing).
+      // We must reset our anchor to prevent throwing the annotations off-screen.
+      final delta = newOffset - _vpPositionAtStartOfPanning;
+      if (delta.distance > 100.0) {
+        _vpPositionAtStartOfPanning = newOffset;
+        _vpPosition = newOffset;
+        return;
+      }
+
+      _vpPosition = newOffset;
       _moveLineAnnotationsAbsolute(delta);
       _moveTextAnnotationsAbsolute(delta);
     }
@@ -634,7 +645,7 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
         await _pluginState.pdfViewControllerNotifier.value?.getCurrentPageSize() ?? .zero;
     final pageCount = await _pluginState.pdfViewControllerNotifier.value?.getPageCount() ?? 1;
     final pdfHeightLimit = pageCount * pdfPageSize.height - _overlayHeightScaled;
-    final yTranslation = -(position.dy - 100.0) * _devPixRatio;
+    final yTranslation = -(position.dy - 100.0);
     final newPdfOffset = _pluginState.pdfOffsetNotifier.value.translate(0.0, yTranslation);
     if (!newPdfOffset.dy.isNegative) {
       // new offset is above pdf top

@@ -34,13 +34,19 @@ class _MyAppState extends State<MyApp> {
     try {
       final dir = await getApplicationDocumentsDirectory();
       final file = File('${dir.path}/sample.pdf');
-
-      // Copy from assets to local file system so it can be accessed by path
-      final data = await rootBundle.load('assets/sample.pdf');
-      final bytes = data.buffer.asUint8List();
-      await file.writeAsBytes(bytes, flush: true);
+      final modifiedFile = File('${dir.path}/sample_annotated.pdf');
 
       _originalPdfPath = _pdfPath = file.path;
+      if (await file.exists()) {
+        if (await modifiedFile.exists()) {
+          _pdfPath = modifiedFile.path;
+        }
+      } else {
+        // Copy from assets to local file system so it can be accessed by path
+        final data = await rootBundle.load('assets/sample.pdf');
+        final bytes = data.buffer.asUint8List();
+        await file.writeAsBytes(bytes, flush: true);
+      }
     } catch (e) {
       debugPrint('Error initializing PDF: $e');
     } finally {
@@ -75,9 +81,13 @@ class _MyAppState extends State<MyApp> {
                     ),
                   ),
                 ).then((result) {
-                  if (result is String && result.isNotEmpty) {
+                  if (result is String) {
                     setState(() {
-                      _pdfPath = result;
+                      if (result.isNotEmpty) {
+                        _pdfPath = result;
+                      } else {
+                        _pdfPath = _originalPdfPath;
+                      }
                     });
                   }
                 }),
@@ -86,7 +96,7 @@ class _MyAppState extends State<MyApp> {
       ),
       body: SafeArea(
         child: PDFView(
-          key: Key(_pdfPath),
+          key: UniqueKey(),
           filePath: _pdfPath,
           pageFling: false,
           pageSnap: false,
