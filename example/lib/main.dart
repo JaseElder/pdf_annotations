@@ -137,6 +137,7 @@ class _EditPageState extends State<EditPage> {
   String _fontFamily = 'Google Sans';
   double _fontSize = 18.0;
   QualityValue _annotationQuality = .high;
+  bool _toolsOpen = true;
 
   @override
   Widget build(BuildContext context) {
@@ -175,127 +176,153 @@ class _EditPageState extends State<EditPage> {
         ),
         body: _pdfPath.isEmpty
             ? const Center(child: Text('No PDF file found. Please add sample.pdf'))
-            : Column(
+            : Stack(
                 children: [
-                  Column(
-                    mainAxisAlignment: .center,
-                    children: [
-                      SegmentedButton<QualityValue>(
-                        segments: <ButtonSegment<QualityValue>>[
-                          ButtonSegment<QualityValue>(value: .low, label: const Text('Low')),
-                          ButtonSegment<QualityValue>(value: .high, label: const Text('High')),
-                        ],
-                        selected: <QualityValue>{_annotationQuality},
-                        onSelectionChanged: (Set<QualityValue> newSelection) {
-                          setState(() {
-                            _annotationQuality = newSelection.first;
-                          });
-                          _controller.setAnnotationQuality(_annotationQuality);
-                        },
-                      ),
-                      SegmentedButton<EditMode>(
-                        segments: const <ButtonSegment<EditMode>>[
-                          ButtonSegment<EditMode>(
-                            value: .draw,
-                            label: Text('Draw'),
-                            icon: Icon(Icons.edit),
-                          ),
-                          ButtonSegment<EditMode>(
-                            value: .text,
-                            label: Text('Text'),
-                            icon: Icon(Icons.text_fields),
-                          ),
-                          ButtonSegment<EditMode>(
-                            value: .pan,
-                            label: Text('Pan'),
-                            icon: Icon(Icons.pan_tool),
-                          ),
-                        ],
-                        selected: <EditMode>{_editMode},
-                        onSelectionChanged: (Set<EditMode> newSelection) {
-                          setState(() {
-                            _editMode = newSelection.first;
-                          });
-                          _controller.setEditMode(_editMode);
-                          if (_editMode == .text) {
-                            _controller.setFontFamily(_fontFamily);
-                          }
-                        },
-                      ),
-                      _editMode == .draw
-                          ? SegmentedButton<LineMode>(
-                              segments: <ButtonSegment<LineMode>>[
-                                ButtonSegment<LineMode>(value: .pen, label: const Text('Pen')),
-                                ButtonSegment<LineMode>(
-                                  value: .highlighter,
-                                  label: const Text('Highlighter'),
-                                ),
-                              ],
-                              selected: <LineMode>{_lineMode},
-                              onSelectionChanged: (Set<LineMode> newSelection) {
-                                setState(() {
-                                  _lineMode = newSelection.first;
-                                });
-                                _controller.setLineMode(_lineMode);
-                              },
-                            )
-                          : _editMode == .text
-                          ? Row(
-                              mainAxisSize: .min,
-                              children: [
-                                SegmentedButton<String>(
-                                  segments: <ButtonSegment<String>>[
-                                    ButtonSegment<String>(
-                                      value: 'Google Sans',
-                                      label: const Text('Google Sans'),
-                                    ),
-                                    ButtonSegment<String>(
-                                      value: 'Courier Prime',
-                                      label: const Text('Courier'),
-                                    ),
-                                  ],
-                                  selected: <String>{_fontFamily},
-                                  onSelectionChanged: (Set<String> newSelection) {
-                                    setState(() {
-                                      _fontFamily = newSelection.first;
-                                    });
-                                    _controller.setFontFamily(_fontFamily);
-                                  },
-                                ),
-                                Slider(
-                                  min: 10.0,
-                                  max: 40.0,
-                                  divisions: 30,
-                                  value: _fontSize,
-                                  onChanged: (newSize) {
-                                    setState(() {
-                                      _fontSize = newSize;
-                                    });
-                                    _controller.setFontSize(_fontSize);
-                                  },
-                                ),
-                              ],
-                            )
-                          : SizedBox.shrink(),
-                    ],
+                  PdfAnnotationsView(
+                    pdfPath: _pdfPath,
+                    startPage: 0,
+                    initialOffset: widget.pdfOffset,
+                    initialAnnotationColour: Colors.red,
+                    initialFontSize: _fontSize,
+                    initialFontFamily: _fontFamily,
+                    pdfZoom: widget.pdfZoom,
+                    pdfAnnotationsViewController: _controller,
+                    onAnnotationQualityChanged: _onAnnotationQualityChanged,
+                    onPageChanged: (page) => debugPrint('Page: $page'),
+                    onError: (error) => debugPrint('Error: $error'),
                   ),
-                  Expanded(
-                    child: PdfAnnotationsView(
-                      pdfPath: _pdfPath,
-                      startPage: 0,
-                      initialOffset: widget.pdfOffset,
-                      initialAnnotationColour: Colors.red,
-                      initialFontSize: _fontSize,
-                      initialFontFamily: _fontFamily,
-                      pdfZoom: widget.pdfZoom,
-                      pdfAnnotationsViewController: _controller,
-                      onAnnotationQualityChanged: _onAnnotationQualityChanged,
-                      onPageChanged: (page) => debugPrint('Page: $page'),
-                      onError: (error) => debugPrint('Error: $error'),
-                    ),
-                  ),
+                  Positioned(top: 10, left: 10, child: _buildToolSection()),
                 ],
               ),
+      ),
+    );
+  }
+
+  Container _buildToolSection() {
+    return Container(
+      color: Colors.orange.withAlpha(210),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          IconButton(
+            onPressed: () => setState(() {
+              _toolsOpen = !_toolsOpen;
+            }),
+            icon: Icon(_toolsOpen ? Icons.close_fullscreen : Icons.fullscreen),
+          ),
+          _toolsOpen
+              ? Row(
+                  children: [
+                    Column(
+                      mainAxisAlignment: .center,
+                      children: [
+                        SegmentedButton<QualityValue>(
+                          segments: <ButtonSegment<QualityValue>>[
+                            ButtonSegment<QualityValue>(value: .low, label: const Text('Low')),
+                            ButtonSegment<QualityValue>(value: .high, label: const Text('High')),
+                          ],
+                          selected: <QualityValue>{_annotationQuality},
+                          onSelectionChanged: (Set<QualityValue> newSelection) {
+                            setState(() {
+                              _annotationQuality = newSelection.first;
+                            });
+                            _controller.setAnnotationQuality(_annotationQuality);
+                          },
+                        ),
+                        SegmentedButton<EditMode>(
+                          segments: const <ButtonSegment<EditMode>>[
+                            ButtonSegment<EditMode>(
+                              value: .draw,
+                              label: Text('Draw'),
+                              icon: Icon(Icons.edit),
+                            ),
+                            ButtonSegment<EditMode>(
+                              value: .text,
+                              label: Text('Text'),
+                              icon: Icon(Icons.text_fields),
+                            ),
+                            ButtonSegment<EditMode>(
+                              value: .pan,
+                              label: Text('Pan'),
+                              icon: Icon(Icons.pan_tool),
+                            ),
+                          ],
+                          selected: <EditMode>{_editMode},
+                          onSelectionChanged: (Set<EditMode> newSelection) {
+                            setState(() {
+                              _editMode = newSelection.first;
+                            });
+                            _controller.setEditMode(_editMode);
+                            if (_editMode == .text) {
+                              _controller.setFontFamily(_fontFamily);
+                            }
+                          },
+                        ),
+                        _editMode == .draw
+                            ? SegmentedButton<LineMode>(
+                                segments: <ButtonSegment<LineMode>>[
+                                  ButtonSegment<LineMode>(value: .pen, label: const Text('Pen')),
+                                  ButtonSegment<LineMode>(
+                                    value: .highlighter,
+                                    label: const Text('Highlighter'),
+                                  ),
+                                ],
+                                selected: <LineMode>{_lineMode},
+                                onSelectionChanged: (Set<LineMode> newSelection) {
+                                  setState(() {
+                                    _lineMode = newSelection.first;
+                                  });
+                                  _controller.setLineMode(_lineMode);
+                                },
+                              )
+                            : _editMode == .text
+                            ? Column(
+                                mainAxisSize: .min,
+                                children: [
+                                  SegmentedButton<String>(
+                                    segments: <ButtonSegment<String>>[
+                                      ButtonSegment<String>(
+                                        value: 'Google Sans',
+                                        label: const Text('Google Sans'),
+                                      ),
+                                      ButtonSegment<String>(
+                                        value: 'Courier Prime',
+                                        label: const Text('Courier'),
+                                      ),
+                                    ],
+                                    selected: <String>{_fontFamily},
+                                    onSelectionChanged: (Set<String> newSelection) {
+                                      setState(() {
+                                        _fontFamily = newSelection.first;
+                                      });
+                                      _controller.setFontFamily(_fontFamily);
+                                    },
+                                  ),
+                                  SizedBox(
+                                    width: 300,
+                                    child: Slider(
+                                      min: 10.0,
+                                      max: 40.0,
+                                      divisions: 30,
+                                      value: _fontSize,
+                                      onChanged: (newSize) {
+                                        setState(() {
+                                          _fontSize = newSize;
+                                        });
+                                        _controller.setFontSize(_fontSize);
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : SizedBox.shrink(),
+                      ],
+                    ),
+                    const SizedBox(width: 40),
+                  ],
+                )
+              : SizedBox.shrink(),
+        ],
       ),
     );
   }
