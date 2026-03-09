@@ -222,11 +222,16 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
       builder: (BuildContext context, BoxConstraints constraints) {
         _overlayHeightScaled = constraints.maxHeight * _devPixRatio;
         _overlayWidthScaled = constraints.maxWidth * _devPixRatio;
-        return AllOverlayWidgets(
-          currentText: _currentText,
-          currentLine: _currentLine,
-          panLayer: _panLayer,
-          selectedEditMode: _pluginState.editModeNotifier.value,
+        return ValueListenableBuilder<EditMode>(
+          valueListenable: _pluginState.editModeNotifier,
+          builder: (context, currentEditMode, child) {
+            return AllOverlayWidgets(
+              currentText: _currentText,
+              currentLine: _currentLine,
+              panLayer: _panLayer,
+              selectedEditMode: currentEditMode,
+            );
+          },
         );
       },
     );
