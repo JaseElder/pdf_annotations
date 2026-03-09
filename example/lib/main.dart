@@ -60,54 +60,53 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('PDF Annotations Example'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () =>
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => EditPage(
-                      pdfPath: _originalPdfPath,
-                      pdfZoom: _pdfScale,
-                      pdfOffset: _pdfOffset,
-                    ),
+    return SafeArea(
+      child: _isLoading
+          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+          : Scaffold(
+              appBar: AppBar(
+                title: const Text('PDF Annotations Example'),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () =>
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditPage(
+                              pdfPath: _originalPdfPath,
+                              pdfZoom: _pdfScale,
+                              pdfOffset: _pdfOffset,
+                            ),
+                          ),
+                        ).then((result) {
+                          if (result is String) {
+                            setState(() {
+                              if (result.isNotEmpty) {
+                                _pdfPath = result;
+                              } else {
+                                _pdfPath = _originalPdfPath;
+                              }
+                            });
+                          }
+                        }),
                   ),
-                ).then((result) {
-                  if (result is String) {
-                    setState(() {
-                      if (result.isNotEmpty) {
-                        _pdfPath = result;
-                      } else {
-                        _pdfPath = _originalPdfPath;
-                      }
-                    });
-                  }
-                }),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: PDFView(
-          key: UniqueKey(),
-          filePath: _pdfPath,
-          pageFling: false,
-          pageSnap: false,
-          onDraw: (double pdfXOffset, double pdfYOffset, double pdfScale) {
-            _pdfOffset = Offset(pdfXOffset, pdfYOffset);
-            _pdfScale = pdfScale;
-          },
-          onPageChanged: (page, total) => debugPrint('Page: $page of $total'),
-          onError: (error) => debugPrint('Error: $error'),
-        ),
-      ),
+                ],
+              ),
+              body: PDFView(
+                key: UniqueKey(),
+                filePath: _pdfPath,
+                pageFling: false,
+                pageSnap: false,
+                autoSpacing: false,
+                onDraw: (double pdfXOffset, double pdfYOffset, double pdfScale) {
+                  _pdfOffset = Offset(pdfXOffset, pdfYOffset);
+                  _pdfScale = pdfScale;
+                },
+                onPageChanged: (page, total) => debugPrint('Page: $page of $total'),
+                onError: (error) => debugPrint('Error: $error'),
+              ),
+            ),
     );
   }
 }
@@ -141,36 +140,42 @@ class _EditPageState extends State<EditPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        title: const Text('PDF Annotations Example'),
-        actions: [
-          IconButton(icon: const Icon(Icons.undo), onPressed: () async => await _controller.undo()),
-          IconButton(icon: const Icon(Icons.redo), onPressed: () async => await _controller.redo()),
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: () async {
-              final pdfFonts = [
-                PdfFont(family: 'Google Sans', fileName: 'GoogleSans-Regular.ttf'),
-                PdfFont(family: 'Courier Prime', fileName: 'CourierPrime-Regular.ttf'),
-              ];
-              await _controller.registerFonts(pdfFonts);
-              await _controller.saveAnnotations();
-              if (context.mounted) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('Annotations saved!')));
-                Navigator.pop(context, _controller.getBakedPath());
-              }
-            },
-          ),
-        ],
-      ),
-      body: _pdfPath.isEmpty
-          ? const Center(child: Text('No PDF file found. Please add sample.pdf'))
-          : SafeArea(
-              child: Column(
+    return SafeArea(
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(
+          title: const Text('PDF Annotations Example'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.undo),
+              onPressed: () async => await _controller.undo(),
+            ),
+            IconButton(
+              icon: const Icon(Icons.redo),
+              onPressed: () async => await _controller.redo(),
+            ),
+            IconButton(
+              icon: const Icon(Icons.save),
+              onPressed: () async {
+                final pdfFonts = [
+                  PdfFont(family: 'Google Sans', fileName: 'GoogleSans-Regular.ttf'),
+                  PdfFont(family: 'Courier Prime', fileName: 'CourierPrime-Regular.ttf'),
+                ];
+                await _controller.registerFonts(pdfFonts);
+                await _controller.saveAnnotations();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Annotations saved!')));
+                  Navigator.pop(context, _controller.getBakedPath());
+                }
+              },
+            ),
+          ],
+        ),
+        body: _pdfPath.isEmpty
+            ? const Center(child: Text('No PDF file found. Please add sample.pdf'))
+            : Column(
                 children: [
                   Column(
                     mainAxisAlignment: .center,
@@ -291,7 +296,7 @@ class _EditPageState extends State<EditPage> {
                   ),
                 ],
               ),
-            ),
+      ),
     );
   }
 

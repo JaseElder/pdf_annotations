@@ -103,7 +103,7 @@ class _PdfDocViewState extends State<PdfDocView> {
         defaultPage: widget.defaultPage,
         pageFling: false,
         pageSnap: false,
-        fitPolicy: .WIDTH,
+        autoSpacing: false,
         preventLinkNavigation: true,
         gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
           Factory<OneSequenceGestureRecognizer>(() => VerticalDragGestureRecognizer()),

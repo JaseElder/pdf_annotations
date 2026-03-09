@@ -222,16 +222,11 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
       builder: (BuildContext context, BoxConstraints constraints) {
         _overlayHeightScaled = constraints.maxHeight * _devPixRatio;
         _overlayWidthScaled = constraints.maxWidth * _devPixRatio;
-        return ValueListenableBuilder<EditMode>(
-          valueListenable: _pluginState.editModeNotifier,
-          builder: (context, currentEditMode, child) {
-            return AllOverlayWidgets(
-              currentText: _currentText,
-              currentLine: _currentLine,
-              panLayer: _panLayer,
-              selectedEditMode: currentEditMode,
-            );
-          },
+        return AllOverlayWidgets(
+          currentText: _currentText,
+          currentLine: _currentLine,
+          panLayer: _panLayer,
+          selectedEditMode: _pluginState.editModeNotifier.value,
         );
       },
     );
@@ -247,21 +242,8 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
 
   void _moveByPanning() {
     if (!_keyboardActive) {
-      final newOffset = _pluginState.pdfOffsetNotifier.value;
-
-      // If the delta is extremely massive (e.g. > 50 pixels instantly), it is
-      // practically impossible for it to be a user pan frame. This happens when
-      // the native PDF view recalculates its entire coordinate space due to a
-      // layout resize (like the SegmentedButton disappearing).
-      // We must reset our anchor to prevent throwing the annotations off-screen.
-      final delta = newOffset - _vpPositionAtStartOfPanning;
-      if (delta.distance > 100.0) {
-        _vpPositionAtStartOfPanning = newOffset;
-        _vpPosition = newOffset;
-        return;
-      }
-
-      _vpPosition = newOffset;
+      _vpPosition = _pluginState.pdfOffsetNotifier.value;
+      final delta = _vpPosition - _vpPositionAtStartOfPanning;
       _moveLineAnnotationsAbsolute(delta);
       _moveTextAnnotationsAbsolute(delta);
     }

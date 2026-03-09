@@ -182,7 +182,6 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
   late double _devPixRatio;
 
   List<PdfFont> _fontList = [];
-  bool _editModeChanged = false;
 
   @override
   void initState() {
@@ -225,6 +224,12 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
     _pluginState.undoEnabledNotifier.addListener(_onUndoAvailabilityChanged);
     _pluginState.redoEnabledNotifier.addListener(_onRedoAvailabilityChanged);
     _pluginState.annotationQualityNotifier.addListener(_onAnnotationQualityChanged);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _devPixRatio = MediaQuery.devicePixelRatioOf(context);
   }
 
   @override
@@ -275,14 +280,9 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
   Future<void> _onDraw({required Offset position, required double scale}) async {
     if (!mounted) return;
 
-    if (_editModeChanged) {
-      await _pdfViewController?.setPosition(_pluginState.pdfOffsetNotifier.value);
-      _editModeChanged = false;
-    } else {
-      if (_pluginState.pdfOffsetNotifier.value != position) {
-        _pluginState.pdfOffsetNotifier.value = position;
-        widget.onOffsetChanged?.call(position);
-      }
+    if (_pluginState.pdfOffsetNotifier.value != position) {
+      _pluginState.pdfOffsetNotifier.value = position;
+      widget.onOffsetChanged?.call(position);
     }
   }
 
@@ -347,10 +347,7 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
   }
 
   void _setEditMode(EditMode mode) {
-    setState(() {
-      _editModeChanged = _pluginState.editMode != mode;
-      _pluginState.editMode = mode;
-    });
+    _pluginState.editMode = mode;
   }
 
   void _setFontSize(double fontSize) {
@@ -370,7 +367,6 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
 
   @override
   Widget build(BuildContext context) {
-    _devPixRatio = MediaQuery.devicePixelRatioOf(context);
     return PluginStateProvider(
       _pluginState,
       child: Stack(
