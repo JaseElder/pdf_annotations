@@ -19,17 +19,17 @@ dependencies:
   path: ^1.9.1
   path_provider: ^2.1.5
   native_device_orientation: ^2.1.0
-  keyboard_height_plugin: ^0.2.0
+  keyboard_height_plugin: ^0.3.0
   nanoid: ^1.0.0
   transparent_pointer: ^1.0.1
-  logger: ^2.6.2
+  logger: ^2.7.0
   equatable: ^2.0.8
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  pigeon: ^26.1.8
+  pigeon: ^26.3.4
   mocktail: ^1.0.4
 
 # tests won't run without this override, at least for objective_c 9.2.0-9.3.0
