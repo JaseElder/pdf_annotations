@@ -367,55 +367,60 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
 
   @override
   Widget build(BuildContext context) {
-    return PluginStateProvider(
-      _pluginState,
-      child: Stack(
-        children: [
-          Column(
+    return ValueListenableBuilder<EditMode>(
+      valueListenable: _pluginState.editModeNotifier,
+      builder: (context, value, child) {
+        return PluginStateProvider(
+          _pluginState,
+          child: Stack(
             children: [
-              Expanded(
-                child: PdfDocView(
-                  pdfPath: widget.pdfPath,
-                  defaultPage: widget.startPage,
-                  onViewCreated: _onViewCreated,
-                  onRender: _onRender,
-                  onDraw: _onDraw,
-                  onPageChanged: _onPageChanged,
-                  onError: _onError,
-                  onPageError: _onPageError,
+              Column(
+                children: [
+                  Expanded(
+                    child: PdfDocView(
+                      pdfPath: widget.pdfPath,
+                      defaultPage: widget.startPage,
+                      onViewCreated: _onViewCreated,
+                      onRender: _onRender,
+                      onDraw: _onDraw,
+                      onPageChanged: _onPageChanged,
+                      onError: _onError,
+                      onPageError: _onPageError,
+                    ),
+                  ),
+                  SizedBox(
+                    width: .infinity,
+                    height: _pluginState.cursorAdjustmentForKeyboardHeightNotifier.value,
+                  ),
+                ],
+              ),
+              Visibility(
+                visible: !_isProgressVisible,
+                child: TransparentPointer(
+                  transparent: Platform.isAndroid || _pluginState.editMode == .pan,
+                  child: DrawingOverlay(
+                    drawingOverlayController: _drawingOverlayController,
+                    pdfPath: widget.pdfPath,
+                    onInsertionPointModified: _onInsertionPointModified,
+                    onError: _onError,
+                  ),
                 ),
               ),
-              SizedBox(
-                width: .infinity,
-                height: _pluginState.cursorAdjustmentForKeyboardHeightNotifier.value,
+              Visibility(
+                visible: _isProgressVisible || _showExitProgress,
+                child: Container(
+                  width: .infinity,
+                  height: .infinity,
+                  color: _showExitProgress ? Colors.white : Colors.transparent,
+                  child: Center(
+                    child: CircularProgressIndicator(color: widget.progressIndicatorColour),
+                  ),
+                ),
               ),
             ],
           ),
-          Visibility(
-            visible: !_isProgressVisible,
-            child: TransparentPointer(
-              transparent: Platform.isAndroid || _pluginState.editMode == .pan,
-              child: DrawingOverlay(
-                drawingOverlayController: _drawingOverlayController,
-                pdfPath: widget.pdfPath,
-                onInsertionPointModified: _onInsertionPointModified,
-                onError: _onError,
-              ),
-            ),
-          ),
-          Visibility(
-            visible: _isProgressVisible || _showExitProgress,
-            child: Container(
-              width: .infinity,
-              height: .infinity,
-              color: _showExitProgress ? Colors.white : Colors.transparent,
-              child: Center(
-                child: CircularProgressIndicator(color: widget.progressIndicatorColour),
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 

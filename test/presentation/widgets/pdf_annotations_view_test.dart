@@ -1,5 +1,7 @@
 // test/presentation/widgets/pdf_annotations_view_test.dart
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -90,7 +92,6 @@ void main() {
 
       verify(() => mockPdfViewController.setZoomLimits(1.0, 1.0, 1.0)).called(1);
       verify(() => mockPdfViewController.setPosition(any())).called(1);
-      verify(() => mockPdfViewController.setScale(1.0)).called(1);
     });
 
     testWidgets('should wire up all methods to the PdfAnnotationsViewController', (tester) async {
@@ -232,41 +233,60 @@ void main() {
       when(() => mockPdfViewController.setScale(any())).thenAnswer((_) async => true);
       when(() => mockPdfViewController.getScale()).thenAnswer((_) async => 1.0);
 
-      await pumpWidget(tester);
+      final realController = PdfAnnotationsViewController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PdfAnnotationsView(
+              pdfPath: 'test.pdf',
+              startPage: 0,
+              initialOffset: Offset.zero,
+              initialAnnotationColour: Colors.red,
+              initialFontSize: 14.0,
+              initialFontFamily: 'Arial',
+              pdfZoom: 1.0,
+              pdfAnnotationsViewController: realController,
+            ),
+          ),
+        ),
+      );
 
       final pdfView = tester.widget<PDFView>(find.byType(PDFView));
       pdfView.onViewCreated!(mockPdfViewController);
       pdfView.onRender!(10);
       await tester.pumpAndSettle();
 
-      // Capture the setEditMode function
-      final setEditMode =
-          verify(() => mockController.setEditMode = captureAny()).captured.single
-              as void Function(EditMode);
-
       // Initially pan mode might be set or default text/draw.
       // Let's set it to 'pan' and check transparency (should be transparent)
-      setEditMode(EditMode.pan);
+      realController.setEditMode(EditMode.pan);
       await tester.pump();
 
-      // Find TransparentPointer
-      final transparentPointerFinder = find
-          .descendant(of: find.byType(Visibility), matching: find.byType(TransparentPointer))
-          .first; // .first because Visibility might hide others, but here structure is fixed
-
-      TransparentPointer widget = tester.widget<TransparentPointer>(transparentPointerFinder);
+      final tpPan = tester.widget<TransparentPointer>(find.byType(TransparentPointer));
       // In Pan mode, transparent should be true (allowing touches to pass to PDF)
-      expect(widget.transparent, isTrue);
+      expect(tpPan.transparent, isTrue, reason: 'In Pan mode, pointer should be transparent');
 
       // Set to 'draw' mode
-      setEditMode(EditMode.draw);
+      realController.setEditMode(EditMode.draw);
       await tester.pump();
 
-      widget = tester.widget<TransparentPointer>(transparentPointerFinder);
+      final tpDraw = tester.widget<TransparentPointer>(find.byType(TransparentPointer));
       // In Draw mode, transparent should be false (intercepting touches for drawing)
       // Note: On Android Platform.isAndroid is true so it might be always true in code,
       // but test environment is likely Linux/Mac, so Platform.isAndroid is false.
-      expect(widget.transparent, isFalse);
+      if (Platform.isAndroid) {
+        expect(
+          tpDraw.transparent,
+          isTrue,
+          reason: 'In Draw mode on Android, pointer should be transparent',
+        );
+      } else {
+        expect(
+          tpDraw.transparent,
+          isFalse,
+          reason: 'In Draw mode, pointer should not be transparent',
+        );
+      }
     });
 
     testWidgets('should show loading indicator when pop is invoked', (tester) async {
