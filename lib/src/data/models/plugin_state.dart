@@ -9,6 +9,7 @@ import '../../domain/entities/line_annotation.dart';
 import '../../domain/entities/text_annotation.dart';
 import '../../domain/repositories/json_annotations_repository.dart';
 import '../../utilities/enums.dart';
+import '../../utilities/errors.dart';
 import '../repositories/json_annotations_repository_impl.dart';
 import 'generic_annotations_notifier.dart';
 import 'line_annotation_notifier.dart';
@@ -133,13 +134,13 @@ class PluginState {
     }
   }
 
-  Future<SaveStateResult> saveAnnotationsToJson({
+  Future<TaskResult<SaveStateResult>> saveAnnotationsToJson({
     required String pdfPath,
     required Offset viewportPosition,
     required double scaledOverlayWidth,
     required List<AddedAnnotation> addedAnnotations,
-  }) {
-    return _jsonAnnotationsRepository.saveAnnotationsState(
+  }) async {
+    final result = await _jsonAnnotationsRepository.saveAnnotationsState(
       lineAnnotations: lineAnnotationsListNotifier.value,
       textAnnotations: textAnnotationsListNotifier.value,
       addedAnnotations: addedAnnotations,
@@ -148,35 +149,42 @@ class PluginState {
       pdfPath: pdfPath,
       annotationQuality: annotationQualityNotifier.value,
     );
+
+    return switch (result) {
+      Success(data: var loadedData) => () {
+        return Success(loadedData);
+      }(),
+      Failure(message: var message, error: var error) => Failure(message, error: error),
+    };
   }
 
-  Future<List<AddedAnnotation>> loadPreviousSavedJson({
+  Future<TaskResult<List<AddedAnnotation>>> loadPreviousSavedJson({
     required String pdfPath,
     required Offset viewportPosition,
     required double scaledOverlayWidth,
     required double shortestSideEstimate,
   }) async {
-    final loadedData = await _jsonAnnotationsRepository.loadAnnotationsState(
+    final result = await _jsonAnnotationsRepository.loadAnnotationsState(
       pdfPath: pdfPath,
       vpPosition: viewportPosition,
       overlayWidthScaled: scaledOverlayWidth,
       shortestSideEstimate: shortestSideEstimate,
     );
 
-    if (loadedData == null) {
-      return [];
-    }
-
-    var (lineAnnotations, textAnnotations, addedAnnotations, annotationQuality) = loadedData;
-
-    if (lineAnnotations.isNotEmpty) {
-      lineAnnotationsListNotifier.addAnnotations(lineAnnotations);
-    }
-    if (textAnnotations.isNotEmpty) {
-      textAnnotationsListNotifier.addAnnotations(textAnnotations);
-    }
-    annotationQualityNotifier.value = annotationQuality;
-    return addedAnnotations;
+    return switch (result) {
+      Success(data: var loadedData) => () {
+        final (lines, texts, added, quality) = loadedData;
+        if (lines.isNotEmpty) {
+          lineAnnotationsListNotifier.addAnnotations(lines);
+        }
+        if (texts.isNotEmpty) {
+          textAnnotationsListNotifier.addAnnotations(texts);
+        }
+        annotationQualityNotifier.value = quality;
+        return Success(added);
+      }(),
+      Failure(message: var message, error: var error) => Failure(message, error: error),
+    };
   }
 }
 

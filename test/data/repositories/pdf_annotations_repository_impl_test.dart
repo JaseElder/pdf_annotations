@@ -5,6 +5,7 @@ import 'package:pdf_annotations/src/data/models/pdf_font.dart';
 import 'package:pdf_annotations/src/data/repositories/pdf_annotations_repository_impl.dart';
 import 'package:pdf_annotations/src/domain/entities/line_annotation.dart';
 import 'package:pdf_annotations/src/domain/entities/text_annotation.dart';
+import 'package:pdf_annotations/src/utilities/errors.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -74,7 +75,8 @@ void main() {
         overlayScale: 1.0,
       );
 
-      expect(result, true);
+      expect(result, isA<Success<bool>>());
+      expect((result as Success).data, true);
     });
   });
 }

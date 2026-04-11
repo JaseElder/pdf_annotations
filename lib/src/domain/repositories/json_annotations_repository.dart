@@ -1,13 +1,15 @@
 import 'dart:ui';
 
 import '../../utilities/enums.dart';
+import '../../utilities/errors.dart';
 import '../entities/added_annotation.dart';
 import '../entities/line_annotation.dart';
 import '../entities/text_annotation.dart';
 
 abstract class JsonAnnotationsRepository {
   /// Saves the current state of editable annotations.
-  Future<SaveStateResult> saveAnnotationsState({
+  /// Returns a Success/failure with the result of saving
+  Future<TaskResult<SaveStateResult>> saveAnnotationsState({
     required String pdfPath,
     required Offset vpPosition,
     required double overlayWidthScaled,
@@ -18,14 +20,16 @@ abstract class JsonAnnotationsRepository {
   });
 
   /// Loads the previously saved state of editable annotations.
-  /// Returns a tuple with the loaded lists.
+  /// Returns a Success/Failure with a record with the loaded lists.
   Future<
-    (
-      List<LineAnnotation> lineAnnotations,
-      List<TextAnnotation> textAnnotations,
-      List<AddedAnnotation> addedAnnotations,
-      QualityValue annotationQuality,
-    )?
+    TaskResult<
+      (
+        List<LineAnnotation> lineAnnotations,
+        List<TextAnnotation> textAnnotations,
+        List<AddedAnnotation> addedAnnotations,
+        QualityValue annotationQuality,
+      )
+    >
   >
   loadAnnotationsState({
     required String pdfPath,

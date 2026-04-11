@@ -16,7 +16,4 @@ enum SaveStateResult {
 
   /// No action was taken because the on-disk state was already up-to-date.
   noChange,
-
-  /// An error occurred during the save or delete operation.
-  error,
 }

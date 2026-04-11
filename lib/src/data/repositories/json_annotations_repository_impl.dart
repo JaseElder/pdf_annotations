@@ -12,6 +12,7 @@ import '../../domain/entities/line_annotation.dart';
 import '../../domain/entities/text_annotation.dart';
 import '../../domain/repositories/json_annotations_repository.dart';
 import '../../utilities/enums.dart';
+import '../../utilities/errors.dart';
 
 class JsonAnnotationsRepositoryImpl implements JsonAnnotationsRepository {
   final String _savedAnnotationsJsonSuffix;
@@ -20,7 +21,7 @@ class JsonAnnotationsRepositoryImpl implements JsonAnnotationsRepository {
     : _savedAnnotationsJsonSuffix = savedAnnotationsJsonSuffix;
 
   @override
-  Future<SaveStateResult> saveAnnotationsState({
+  Future<TaskResult<SaveStateResult>> saveAnnotationsState({
     required List<LineAnnotation> lineAnnotations,
     required List<TextAnnotation> textAnnotations,
     required Offset vpPosition,
@@ -34,7 +35,7 @@ class JsonAnnotationsRepositoryImpl implements JsonAnnotationsRepository {
         textAnnotations.every((annotation) => !annotation.isActive);
 
     if (noAnnotationIsActive) {
-      return _deleteSavedAnnotationsFile(pdfPath);
+      return await _deleteSavedAnnotationsFile(pdfPath);
     }
 
     final annotationMap = await _generateAnnotationMap(
@@ -54,35 +55,43 @@ class JsonAnnotationsRepositoryImpl implements JsonAnnotationsRepository {
       if (fileExisted) {
         bool contentsEqual = await _compareContents(savedAnnotationsFile, annotationMap);
         if (contentsEqual) {
-          return .noChange;
+          return const Success(.noChange);
         }
       }
 
       await savedAnnotationsFile.writeAsString(jsonEncode(annotationMap));
 
-      return fileExisted ? .fileUpdated : .fileCreated;
-    } catch (e) {
-      return .error;
+      final SaveStateResult finalResult = fileExisted ? .fileUpdated : .fileCreated;
+      return Success(finalResult);
+    } catch (e, stack) {
+      return Failure(
+        'Failed to save annotations to $pdfPath',
+        error: e,
+        stackTrace: stack,
+      );
     }
   }
 
-  Future<SaveStateResult> _deleteSavedAnnotationsFile(String pdfPath) async {
+  Future<TaskResult<SaveStateResult>> _deleteSavedAnnotationsFile(String pdfPath) async {
     try {
       final file = await _getSavedAnnotationsFile(pdfPath);
       if (await file.exists()) {
         await file.delete();
-        return .fileDeleted;
+        return const Success(.fileDeleted);
       }
-      return .noChange;
-    } catch (e) {
-      return .error;
+      return const Success(.noChange);
+    } catch (e, stack) {
+      return Failure(
+        'Failed to delete annotation file for $pdfPath',
+        error: e,
+        stackTrace: stack,
+      );
     }
   }
 
   Future<File> _getSavedAnnotationsFile(String pdfPath) async {
     final dir = await getApplicationDocumentsDirectory();
-    final savedAnnotationsFileName =
-        p.basenameWithoutExtension(pdfPath) + _savedAnnotationsJsonSuffix;
+    final savedAnnotationsFileName = p.basenameWithoutExtension(pdfPath) + _savedAnnotationsJsonSuffix;
     return File('${dir.path}${Platform.pathSeparator}$savedAnnotationsFileName');
   }
 
@@ -115,12 +124,14 @@ class JsonAnnotationsRepositoryImpl implements JsonAnnotationsRepository {
 
   @override
   Future<
-    (
-      List<LineAnnotation> lineAnnotations,
-      List<TextAnnotation> textAnnotations,
-      List<AddedAnnotation> addedAnnotations,
-      QualityValue annotationQuality,
-    )?
+    TaskResult<
+      (
+        List<LineAnnotation> lineAnnotations,
+        List<TextAnnotation> textAnnotations,
+        List<AddedAnnotation> addedAnnotations,
+        QualityValue annotationQuality,
+      )
+    >
   >
   loadAnnotationsState({
     required double shortestSideEstimate,
@@ -133,60 +144,62 @@ class JsonAnnotationsRepositoryImpl implements JsonAnnotationsRepository {
 
       final orientation = await NativeDeviceOrientationCommunicator().orientation();
       final savedAnnotationsFile = await _getSavedAnnotationsFile(pdfPath);
-      if (await savedAnnotationsFile.exists()) {
-        final annotations = await savedAnnotationsFile.readAsString();
-        final decodedAnnotations = jsonDecode(annotations) as Map<String, dynamic>;
-
-        final String qualityFromFile = decodedAnnotations['quality'] ?? 'high';
-
-        final QualityValue quality = QualityValue.values.firstWhere(
-          (element) => element.name == qualityFromFile,
-          orElse: () => QualityValue.high,
-        );
-
-        final String orientationFromFile = decodedAnnotations['orientation'] ?? 'portrait';
-        final double widthFromFile = decodedAnnotations['width'] ?? shortestSideEstimate;
-        var scaleFactor = 1.0;
-        if (!orientation.name.contains(orientationFromFile)) {
-          scaleFactor = overlayWidthScaled / widthFromFile;
-        }
-        final lineAnnotations = _transformAnnotations<LineAnnotation>(
-          decodedAnnotations['lines'],
-          LineAnnotation.fromJson,
-          (annotation) {
-            final newPoints = annotation.line.map((point) {
-              return (point * scaleFactor) + vpPosition;
-            }).toList();
-            return annotation.copyWith(line: newPoints);
-          },
-        );
-
-        final textAnnotations = _transformAnnotations<TextAnnotation>(
-          decodedAnnotations['texts'],
-          TextAnnotation.fromJson,
-          (annotation) {
-            final transformedAnnotation = annotation.copyWith(
-              coordinate: annotation.coordinate.scale(scaleFactor, scaleFactor) + vpPosition,
-              renderedFontSize: annotation.renderedFontSize * scaleFactor,
-              pdfFontSize: annotation.pdfFontSize * scaleFactor,
-            );
-            return transformedAnnotation;
-          },
-        );
-        addedAnnotations =
-            decodedAnnotations['added']
-                .map<AddedAnnotation>(
-                  (json) => AddedAnnotation.fromJson(json as Map<String, dynamic>),
-                )
-                .toList() ??
-            [];
-
-        return (lineAnnotations, textAnnotations, addedAnnotations, quality);
+      if (!await savedAnnotationsFile.exists()) {
+        return const Success(([], [], [], QualityValue.high));
       }
-    } catch (e) {
-      // widget.onError?.call(e);
+
+      final annotations = await savedAnnotationsFile.readAsString();
+      final decodedAnnotations = jsonDecode(annotations) as Map<String, dynamic>;
+
+      final String qualityFromFile = decodedAnnotations['quality'] ?? 'high';
+
+      final QualityValue quality = QualityValue.values.firstWhere(
+        (element) => element.name == qualityFromFile,
+        orElse: () => QualityValue.high,
+      );
+
+      final String orientationFromFile = decodedAnnotations['orientation'] ?? 'portrait';
+      final double widthFromFile = decodedAnnotations['width'] ?? shortestSideEstimate;
+      var scaleFactor = 1.0;
+      if (!orientation.name.contains(orientationFromFile)) {
+        scaleFactor = overlayWidthScaled / widthFromFile;
+      }
+      final lineAnnotations = _transformAnnotations<LineAnnotation>(
+        decodedAnnotations['lines'],
+        LineAnnotation.fromJson,
+        (annotation) {
+          final newPoints = annotation.line.map((point) {
+            return (point * scaleFactor) + vpPosition;
+          }).toList();
+          return annotation.copyWith(line: newPoints);
+        },
+      );
+
+      final textAnnotations = _transformAnnotations<TextAnnotation>(
+        decodedAnnotations['texts'],
+        TextAnnotation.fromJson,
+        (annotation) {
+          final transformedAnnotation = annotation.copyWith(
+            coordinate: annotation.coordinate.scale(scaleFactor, scaleFactor) + vpPosition,
+            renderedFontSize: annotation.renderedFontSize * scaleFactor,
+            pdfFontSize: annotation.pdfFontSize * scaleFactor,
+          );
+          return transformedAnnotation;
+        },
+      );
+      addedAnnotations =
+          decodedAnnotations['added']
+              .map<AddedAnnotation>(
+                (json) => AddedAnnotation.fromJson(json as Map<String, dynamic>),
+              )
+              .toList() ??
+          [];
+
+      final result = (lineAnnotations, textAnnotations, addedAnnotations, quality);
+      return Success(result);
+    } catch (e, stack) {
+      return Failure('Failed to load annotations from $pdfPath', error: e, stackTrace: stack);
     }
-    return null;
   }
 
   List<T> _transformAnnotations<T>(

@@ -11,6 +11,7 @@ import '../../data/models/plugin_state.dart';
 import '../../data/repositories/pdf_annotations_repository_impl.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums.dart';
+import '../../utilities/errors.dart';
 import '../../utilities/logger.dart';
 import 'drawing_overlay.dart';
 import 'pdf_doc_view.dart';
@@ -168,8 +169,7 @@ class PdfAnnotationsView extends StatefulWidget {
   State<PdfAnnotationsView> createState() => _PdfAnnotationsViewState();
 }
 
-class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
-    with SingleTickerProviderStateMixin {
+class _PdfAnnotationsViewState extends State<PdfAnnotationsView> with SingleTickerProviderStateMixin {
   late final PluginState _pluginState;
   late PdfDocViewController _pdfDocViewController;
   late DrawingOverlayController _drawingOverlayController;
@@ -286,17 +286,16 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
     }
   }
 
-  void _setTextFieldShowing() =>
-      widget.onTextFieldShowing?.call(_pluginState.textFieldShowingNotifier.value);
+  void _setTextFieldShowing() => widget.onTextFieldShowing?.call(_pluginState.textFieldShowingNotifier.value);
 
   void _onAnnotationQualityChanged() =>
       widget.onAnnotationQualityChanged?.call(_pluginState.annotationQualityNotifier.value);
 
-  void _onUndoAvailabilityChanged() => widget.pdfAnnotationsViewController.onUndoAvailabilityChanged
-      ?.call(_pluginState.undoEnabledNotifier.value);
+  void _onUndoAvailabilityChanged() =>
+      widget.pdfAnnotationsViewController.onUndoAvailabilityChanged?.call(_pluginState.undoEnabledNotifier.value);
 
-  void _onRedoAvailabilityChanged() => widget.pdfAnnotationsViewController.onRedoAvailabilityChanged
-      ?.call(_pluginState.redoEnabledNotifier.value);
+  void _onRedoAvailabilityChanged() =>
+      widget.pdfAnnotationsViewController.onRedoAvailabilityChanged?.call(_pluginState.redoEnabledNotifier.value);
 
   void _onError(dynamic error) => widget.onError?.call(error);
 
@@ -304,7 +303,15 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
 
   Future<bool> _registerFonts(List<PdfFont> fontList) async {
     _fontList = fontList;
-    return await PdfAnnotationsRepositoryImpl().registerFonts(fontList);
+    final result = await PdfAnnotationsRepositoryImpl().registerFonts(fontList);
+    if (result is Failure) {
+      final failure = result as Failure;
+      _onError(failure.message);
+      return false;
+    }
+
+    final successResult = (result as Success<bool>).data;
+    return successResult;
   }
 
   Future<void> _undo() async {
@@ -453,41 +460,44 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
   void _applyTransform() => _pdfViewController?.setPosition(_pdfScrollAnimation.value);
 
   Future<bool> _saveAndAddAnnotations() async {
-    final annotationsSavedToJsonResult = await _drawingOverlayController
-        .saveAnnotationsToJsonFile();
+    final result = await _drawingOverlayController.saveAnnotationsToJsonFile();
 
-    switch (annotationsSavedToJsonResult) {
+    if (result is Failure) {
+      final failure = result as Failure;
+      _onError(failure.message);
+      return false;
+    }
+
+    final saveResult = (result as Success<SaveStateResult>).data;
+
+    switch (saveResult) {
       case .fileDeleted:
-        final pdfPath = widget.pdfPath;
-        await _deleteBakedFile(pdfPath);
+        await _deleteBakedFile(widget.pdfPath);
         _pdfDocViewController.setNewlyEdited();
         return true;
       case .fileCreated:
       case .fileUpdated:
-        try {
-          var result = await _addAnnotationsToPdf();
-          if (result) {
-            _pdfDocViewController.setNewlyEdited();
-          }
-          return result;
-        } on Exception {
-          rethrow;
+        final addToPdfResult = await _addAnnotationsToPdf();
+        if (addToPdfResult is Failure) {
+          final failure = addToPdfResult as Failure;
+          _onError(failure.message);
+          return false;
         }
+        final successResult = (addToPdfResult as Success<bool>).data;
+        if (successResult) {
+          _pdfDocViewController.setNewlyEdited();
+        }
+        return successResult;
       case .noChange:
-      case .error:
         return false;
     }
   }
 
-  Future<bool> _addAnnotationsToPdf() async {
+  Future<TaskResult<bool>> _addAnnotationsToPdf() async {
     logger.w('start add annotations ${DateTime.now()}');
     final pdfPath = widget.pdfPath;
-    if (pdfPath == '') {
-      return false;
-    }
-
-    if (_pdfViewController == null) {
-      return false;
+    if (pdfPath == '' || _pdfViewController == null) {
+      return Success(false);
     }
 
     final (currentPageSize, position) = await (
@@ -500,23 +510,19 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView>
     var vpOffset = -position * overlayScale;
 
     final bakedFilePath = await _createBakedFile(pdfPath);
-    try {
-      bool result = await PdfAnnotationsRepositoryImpl().addAnnotations(
-        fileName: bakedFilePath,
-        lineAnnotations: _pluginState.lineAnnotationsListNotifier.value,
-        textAnnotations: _pluginState.textAnnotationsListNotifier.value,
-        fonts: _fontList,
-        annotationQuality: _pluginState.annotationQualityNotifier.value,
-        pdfPageDims: Offset(currentPageSize.width, currentPageSize.height),
-        totalPdfLength: currentPageSize.height * noOfPages,
-        viewportOffset: vpOffset,
-        overlayScale: overlayScale,
-      );
-      logger.w('end add annotations ${DateTime.now()}');
-      return result;
-    } on Exception {
-      rethrow;
-    }
+    final result = await PdfAnnotationsRepositoryImpl().addAnnotations(
+      fileName: bakedFilePath,
+      lineAnnotations: _pluginState.lineAnnotationsListNotifier.value,
+      textAnnotations: _pluginState.textAnnotationsListNotifier.value,
+      fonts: _fontList,
+      annotationQuality: _pluginState.annotationQualityNotifier.value,
+      pdfPageDims: Offset(currentPageSize.width, currentPageSize.height),
+      totalPdfLength: currentPageSize.height * noOfPages,
+      viewportOffset: vpOffset,
+      overlayScale: overlayScale,
+    );
+    logger.w('end add annotations ${DateTime.now()}');
+    return result;
   }
 
   Future<String> _createBakedFile(String pdfPath) async {
