@@ -8,6 +8,8 @@ import '../../domain/entities/line_annotation.dart';
 import '../../domain/entities/text_annotation.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums.dart';
+import '../../utilities/errors.dart';
+import '../../utilities/logger.dart';
 import 'all_overlay_widgets.dart';
 import 'current_line_renderer.dart';
 import 'current_text.dart';
@@ -27,8 +29,11 @@ class DrawingOverlayController extends ChangeNotifier {
     await _state?._redoLast();
   }
 
-  Future<SaveStateResult> saveAnnotationsToJsonFile() async {
-    return await _state?._saveProgress() ?? .error;
+  Future<TaskResult<SaveStateResult>> saveAnnotationsToJsonFile() async {
+    if (_state == null) {
+      return const Failure('DrawingOverlay is not attached.');
+    }
+    return await _state!._saveProgress();
   }
 
   double getOverlayWidthScaled() {
@@ -153,8 +158,7 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
       _pluginState.textAnnotationsListNotifier.setAnnotations(
         _startOfPanningTexts
             .map(
-              (annotation) =>
-                  annotation.copyWith(coordinate: annotation.coordinate + Offset(0, deltaY)),
+              (annotation) => annotation.copyWith(coordinate: annotation.coordinate + Offset(0, deltaY)),
             )
             .toList(),
       );
@@ -287,8 +291,7 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
 
   void _handleEditModeChange() {
     _setInitialMoveConditions();
-    if (_pluginState.editModeNotifier.value != EditMode.text &&
-        _textFieldController.text.trim().isNotEmpty) {
+    if (_pluginState.editModeNotifier.value != EditMode.text && _textFieldController.text.trim().isNotEmpty) {
       _finaliseTexting();
     }
   }
@@ -553,8 +556,7 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
             _textFieldController.text.trim(),
             _pluginState.fontFamilyNotifier.value,
             MediaQuery.textScalerOf(context).scale(_pluginState.fontSizeNotifier.value),
-            MediaQuery.textScalerOf(context).scale(_pluginState.fontSizeNotifier.value) *
-                _currentScale,
+            MediaQuery.textScalerOf(context).scale(_pluginState.fontSizeNotifier.value) * _currentScale,
             _pluginState.textInsertionPoint,
             _annotationColour,
           );
@@ -628,8 +630,7 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
   }
 
   Future<void> _setPdfOffset(Offset position) async {
-    final pdfPageSize =
-        await _pluginState.pdfViewControllerNotifier.value?.getCurrentPageSize() ?? .zero;
+    final pdfPageSize = await _pluginState.pdfViewControllerNotifier.value?.getCurrentPageSize() ?? .zero;
     final pageCount = await _pluginState.pdfViewControllerNotifier.value?.getPageCount() ?? 1;
     final pdfHeightLimit = pageCount * pdfPageSize.height - _overlayHeightScaled;
     final yTranslation = -(position.dy - 100.0);
@@ -650,15 +651,22 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
   }
 
   Future<void> _loadPreviousSave() async {
-    _addedAnnotations = await _pluginState.loadPreviousSavedJson(
+    final result = await _pluginState.loadPreviousSavedJson(
       pdfPath: widget.pdfPath,
       viewportPosition: _vpPosition,
       scaledOverlayWidth: _overlayWidthScaled,
       shortestSideEstimate: MediaQuery.sizeOf(context).shortestSide,
     );
+
+    switch (result) {
+      case Success(data: final addedAnnotations):
+        _addedAnnotations = addedAnnotations;
+      case Failure(message: final msg):
+        logger.e(msg);
+    }
   }
 
-  Future<SaveStateResult> _saveProgress() async {
+  Future<TaskResult<SaveStateResult>> _saveProgress() async {
     final kbHeight = _pluginState.keyboardHeightNotifier.value;
     if (kbHeight != 0.0) {
       await _handleKeyboardHeight(0.0);

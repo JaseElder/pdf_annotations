@@ -2,11 +2,12 @@ import 'package:flutter/widgets.dart';
 
 import '../../data/models/pdf_font.dart';
 import '../../utilities/enums.dart';
+import '../../utilities/errors.dart';
 import '../entities/line_annotation.dart';
 import '../entities/text_annotation.dart';
 
 abstract class PdfAnnotationsRepository {
-  Future<bool> addAnnotations({
+  Future<TaskResult<bool>> addAnnotations({
     required String fileName,
     required List<LineAnnotation> lineAnnotations,
     required List<TextAnnotation> textAnnotations,
@@ -18,7 +19,7 @@ abstract class PdfAnnotationsRepository {
     required double overlayScale,
   });
 
-  Future<bool> undoAnnotation(String fileName, int pageNo);
+  Future<TaskResult<bool>> undoAnnotation(String fileName, int pageNo);
 
-  Future<bool> registerFonts(List<PdfFont> fontList);
+  Future<TaskResult<bool>> registerFonts(List<PdfFont> fontList);
 }

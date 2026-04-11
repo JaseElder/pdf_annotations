@@ -7,6 +7,7 @@ import '../../domain/entities/line_annotation.dart';
 import '../../domain/entities/text_annotation.dart';
 import '../../domain/repositories/pdf_annotations_repository.dart';
 import '../../utilities/enums.dart';
+import '../../utilities/errors.dart';
 import '../models/pdf_font.dart';
 
 class PdfAnnotationsRepositoryImpl implements PdfAnnotationsRepository {
@@ -21,7 +22,7 @@ class PdfAnnotationsRepositoryImpl implements PdfAnnotationsRepository {
   final _annotationsApi = PdfAnnotationsApi();
 
   @override
-  Future<bool> addAnnotations({
+  Future<TaskResult<bool>> addAnnotations({
     required String fileName,
     required List<LineAnnotation> lineAnnotations,
     required List<TextAnnotation> textAnnotations,
@@ -67,9 +68,10 @@ class PdfAnnotationsRepositoryImpl implements PdfAnnotationsRepository {
       pdfPageHeight: pdfPageDims.dy,
     );
     try {
-      return await _annotationsApi.addAnnotations(annotationData);
-    } on PlatformException {
-      rethrow;
+      final result = await _annotationsApi.addAnnotations(annotationData);
+      return Success(result);
+    } on PlatformException catch (e, s) {
+      return Failure(e.message ?? '', error: e, stackTrace: s);
     }
   }
 
@@ -112,10 +114,7 @@ class PdfAnnotationsRepositoryImpl implements PdfAnnotationsRepository {
   }
 
   List<Offset> _extractPointsFromPath(Path path, {double precision = 1.0}) {
-    return path
-        .computeMetrics()
-        .expand((metric) => _pointsFromMetric(metric, precision: precision))
-        .toList();
+    return path.computeMetrics().expand((metric) => _pointsFromMetric(metric, precision: precision)).toList();
   }
 
   Iterable<Offset> _pointsFromMetric(PathMetric metric, {double precision = 1.0}) sync* {
@@ -163,18 +162,24 @@ class PdfAnnotationsRepositoryImpl implements PdfAnnotationsRepository {
   }
 
   @override
-  Future<bool> undoAnnotation(String fileName, int pageNo) {
+  Future<TaskResult<bool>> undoAnnotation(String fileName, int pageNo) async {
     try {
-      return _annotationsApi.undoAnnotation(fileName, pageNo);
-    } on PlatformException {
-      rethrow;
+      final result = await _annotationsApi.undoAnnotation(fileName, pageNo);
+      return Success(result);
+    } on PlatformException catch (e, s) {
+      return Failure(e.message ?? '', error: e, stackTrace: s);
     }
   }
 
   @override
-  Future<bool> registerFonts(List<PdfFont> fontList) async {
+  Future<TaskResult<bool>> registerFonts(List<PdfFont> fontList) async {
     final fontNames = fontList.map((font) => font.fileName).toList();
-    // needed in iOS
-    return await _annotationsApi.registerFonts(fontNames);
+    // needed in iOS. Is stubbed out in Android
+    try {
+      final result = await _annotationsApi.registerFonts(fontNames);
+      return Success(result);
+    } on PlatformException catch (e, s) {
+      return Failure(e.message ?? '', error: e, stackTrace: s);
+    }
   }
 }
