@@ -145,7 +145,7 @@ class JsonAnnotationsRepositoryImpl implements JsonAnnotationsRepository {
       final orientation = await NativeDeviceOrientationCommunicator().orientation();
       final savedAnnotationsFile = await _getSavedAnnotationsFile(pdfPath);
       if (!await savedAnnotationsFile.exists()) {
-        return const Success(([], [], [], QualityValue.high));
+        return Success(([], [], [], QualityValue.high));
       }
 
       final annotations = await savedAnnotationsFile.readAsString();
