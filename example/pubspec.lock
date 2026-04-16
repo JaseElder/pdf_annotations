@@ -61,10 +61,10 @@ packages:
     dependency: "direct main"
     description:
       name: cupertino_icons
-      sha256: ba631d1c7f7bef6b729a622b7b752645a2d076dba9976925b8f25725a30e1ee6
+      sha256: "41e005c33bd814be4d3096aff55b1908d419fde52ca656c8c47719ec745873cd"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.8"
+    version: "1.0.9"
   equatable:
     dependency: transitive
     description:
@@ -118,9 +118,11 @@ packages:
   flutter_pdfview:
     dependency: "direct main"
     description:
-      path: "/Users/jasonelder/Documents/Flutter/flutter_pdfview"
-      relative: false
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "67df1a24dbf2fe3a4a45f3f84580b70e40549aa1"
+      url: "https://github.com/JaseElder/flutter_pdfview.git"
+    source: git
     version: "1.4.4"
   flutter_test:
     dependency: "direct dev"

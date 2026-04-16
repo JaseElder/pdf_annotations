@@ -13,8 +13,8 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_pdfview:
-#    git: https://github.com/JaseElder/flutter_pdfview.git
-    path: /Users/jasonelder/Documents/Flutter/flutter_pdfview
+    git: https://github.com/JaseElder/flutter_pdfview.git
+#    path: /Users/jasonelder/Documents/Flutter/flutter_pdfview
   collection: any
   path: ^1.9.1
   path_provider: ^2.1.5
