@@ -125,7 +125,7 @@ public class PdfAnnotationsPlugin: NSObject, FlutterPlugin, PdfAnnotationsApi {
             }
             
             if bezierPath.isEmpty {
-                throw AnnotationsError(code: "FAIL", message: "Bezier path is empty.", details: "nil")
+                continue
             }
             
             let drawingAnnotation = PDFAnnotation(bounds: mediaBox, forType: .ink, withProperties: nil)

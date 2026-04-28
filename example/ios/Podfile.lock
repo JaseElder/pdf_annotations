@@ -35,7 +35,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  flutter_pdfview: eb96a5c7e6fce5f698a495d702f4a8ce2a246a88
+  flutter_pdfview: 0f3c214d93afc2978e7cd995d922ba67717b3e1f
   integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
   keyboard_height_plugin: 021a107306d385b3dc0f9c2638fec08a36144b26
   native_device_orientation: 42487b19c552fb5a6a2b51e61b93366f628113df

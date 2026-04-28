@@ -120,10 +120,10 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "67df1a24dbf2fe3a4a45f3f84580b70e40549aa1"
-      url: "https://github.com/JaseElder/flutter_pdfview.git"
+      resolved-ref: e82d7e06a71056f9614441bbc5ce6b537fe12003
+      url: "https://github.com/endigo/flutter_pdfview.git"
     source: git
-    version: "1.4.4"
+    version: "1.4.5-beta.1"
   flutter_test:
     dependency: "direct dev"
     description: flutter
