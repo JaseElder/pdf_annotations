@@ -99,6 +99,8 @@ class _MyAppState extends State<MyApp> {
                 pageFling: false,
                 pageSnap: false,
                 autoSpacing: false,
+                // showScrollIndicators: true,
+                fitPolicy: FitPolicy.WIDTH,
                 onDraw: (double pdfXOffset, double pdfYOffset, double pdfScale) {
                   _pdfOffset = Offset(pdfXOffset, pdfYOffset);
                   _pdfScale = pdfScale;
