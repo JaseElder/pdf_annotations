@@ -24,13 +24,13 @@ dependencies:
   transparent_pointer: ^1.0.1
   logger: ^2.7.0
   equatable: ^2.0.8
+  meta: ^1.17.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   pigeon: ^26.3.4
-  meta: ^1.17.0
   mocktail: ^1.0.5
 
 flutter:
