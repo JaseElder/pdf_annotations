@@ -1,22 +1,21 @@
 name: pdf_annotations
 description: "A plugin that enables adding text and freehand annotations to existing pdfs"
-version: 1.0.0
+version: 1.0.0-beta.1
 homepage: https://github.com/JaseElder
-publish_to: none
 
 
 environment:
-  sdk: ^3.10.0
+  sdk: '>=3.10.0 <4.0.0'
   flutter: '>=3.3.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  flutter_pdfview: 1.4.5-beta.2
+  flutter_pdfview: ^1.4.5-beta.2
 #    git: https://github.com/endigo/flutter_pdfview.git
 #    git: https://github.com/JaseElder/flutter_pdfview.git
 #    path: /Users/jasonelder/Documents/Flutter/flutter_pdfview
-  collection: any
+  collection: ^1.19.1
   path: ^1.9.1
   path_provider: ^2.1.5
   native_device_orientation: ^2.1.0

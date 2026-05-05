@@ -24,9 +24,7 @@ class TextRenderer extends CustomPainter {
       if (textAnnotation == null) continue;
       final isLatestUndo = latestUndo.id == textAnnotation.id && latestUndo.type == kTextAnnotation;
       final isLatestRedo =
-          latestRedo.id == textAnnotation.id &&
-          latestRedo.type == kTextAnnotation &&
-          textAnnotation.isActive;
+          latestRedo.id == textAnnotation.id && latestRedo.type == kTextAnnotation && textAnnotation.isActive;
       if (textAnnotation.isActive || isLatestUndo || isLatestRedo) {
         var textSpan = TextSpan(
           text: textAnnotation.text,

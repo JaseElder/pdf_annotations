@@ -70,8 +70,7 @@ class LineAnnotation extends Equatable implements AnnotationBase {
   }
 
   @override
-  String toString() =>
-      'LineAnnotation{id: $id, line: $line, colour: $colour, width: $width, isActive: $isActive}';
+  String toString() => 'LineAnnotation{id: $id, line: $line, colour: $colour, width: $width, isActive: $isActive}';
 
   @override
   List<Object?> get props => [id, line, colour, width, isActive];

@@ -1,4 +1,4 @@
-## 1.0.0
+## 1.0.0-beta.1
 
 *   Initial release with `PdfAnnotationsView` widget.
 *   Support for freehand drawing (Pen, Highlighter).
