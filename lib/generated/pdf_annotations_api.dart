@@ -11,9 +11,9 @@ import 'package:flutter/services.dart';
 import 'package:meta/meta.dart' show immutable, protected, visibleForTesting;
 
 Object? _extractReplyValueOrThrow(
-    List<Object?>? replyList,
-    String channelName, {
-    required bool isNullValid,
+  List<Object?>? replyList,
+  String channelName, {
+  required bool isNullValid,
 }) {
   if (replyList == null) {
     throw PlatformException(
@@ -46,9 +46,7 @@ bool _deepEquals(Object? a, Object? b) {
     return a == b;
   }
   if (a is List && b is List) {
-    return a.length == b.length &&
-        a.indexed
-            .every(((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]));
+    return a.length == b.length && a.indexed.every(((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]));
   }
   if (a is Map && b is Map) {
     if (a.length != b.length) {
@@ -97,7 +95,6 @@ int _deepHash(Object? value) {
   return value.hashCode;
 }
 
-
 class AnnotationData {
   AnnotationData({
     required this.fileName,
@@ -128,7 +125,8 @@ class AnnotationData {
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static AnnotationData decode(Object result) {
     result as List<Object?>;
@@ -150,14 +148,17 @@ class AnnotationData {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(fileName, other.fileName) && _deepEquals(drawingPaths, other.drawingPaths) && _deepEquals(textAnnotations, other.textAnnotations) && _deepEquals(pdfPageWidth, other.pdfPageWidth) && _deepEquals(pdfPageHeight, other.pdfPageHeight);
+    return _deepEquals(fileName, other.fileName) &&
+        _deepEquals(drawingPaths, other.drawingPaths) &&
+        _deepEquals(textAnnotations, other.textAnnotations) &&
+        _deepEquals(pdfPageWidth, other.pdfPageWidth) &&
+        _deepEquals(pdfPageHeight, other.pdfPageHeight);
   }
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
   int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
 }
-
 
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
@@ -166,7 +167,7 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is int) {
       buffer.putUint8(4);
       buffer.putInt64(value);
-    }    else if (value is AnnotationData) {
+    } else if (value is AnnotationData) {
       buffer.putUint8(129);
       writeValue(buffer, value.encode());
     } else {
@@ -190,8 +191,8 @@ class PdfAnnotationsApi {
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
   PdfAnnotationsApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
-      : pigeonVar_binaryMessenger = binaryMessenger,
-        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+    : pigeonVar_binaryMessenger = binaryMessenger,
+      pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
 
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
@@ -199,7 +200,8 @@ class PdfAnnotationsApi {
   final String pigeonVar_messageChannelSuffix;
 
   Future<bool> registerFonts(List<String> fontList) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.pdf_annotations.PdfAnnotationsApi.registerFonts$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.pdf_annotations.PdfAnnotationsApi.registerFonts$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -209,16 +211,16 @@ class PdfAnnotationsApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: false,
+    );
     return pigeonVar_replyValue! as bool;
   }
 
   Future<bool> addAnnotations(AnnotationData annotationData) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.pdf_annotations.PdfAnnotationsApi.addAnnotations$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.pdf_annotations.PdfAnnotationsApi.addAnnotations$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -228,16 +230,16 @@ class PdfAnnotationsApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: false,
+    );
     return pigeonVar_replyValue! as bool;
   }
 
   Future<bool> undoAnnotation(String fileName, int pageNo) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.pdf_annotations.PdfAnnotationsApi.undoAnnotation$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.pdf_annotations.PdfAnnotationsApi.undoAnnotation$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -247,11 +249,10 @@ class PdfAnnotationsApi {
     final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
 
     final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-        pigeonVar_replyList,
-        pigeonVar_channelName,
-        isNullValid: false,
-    )
-    ;
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: false,
+    );
     return pigeonVar_replyValue! as bool;
   }
 }

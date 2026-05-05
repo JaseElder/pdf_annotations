@@ -136,7 +136,7 @@ class _EditPageState extends State<EditPage> {
 
   EditMode _editMode = .pan;
   LineMode _lineMode = .pen;
-  String _fontFamily = 'Google Sans';
+  String _fontFamily = 'Work Sans';
   double _fontSize = 18.0;
   QualityValue _annotationQuality = .high;
   bool _toolsOpen = true;
@@ -161,7 +161,7 @@ class _EditPageState extends State<EditPage> {
               icon: const Icon(Icons.save),
               onPressed: () async {
                 final pdfFonts = [
-                  PdfFont(family: 'Google Sans', fileName: 'GoogleSans-Regular.ttf'),
+                  PdfFont(family: 'Work Sans', fileName: 'WorkSans-Regular.ttf'),
                   PdfFont(family: 'Courier Prime', fileName: 'CourierPrime-Regular.ttf'),
                 ];
                 await _controller.registerFonts(pdfFonts);
@@ -284,8 +284,8 @@ class _EditPageState extends State<EditPage> {
                                   SegmentedButton<String>(
                                     segments: <ButtonSegment<String>>[
                                       ButtonSegment<String>(
-                                        value: 'Google Sans',
-                                        label: const Text('Google Sans'),
+                                        value: 'Work Sans',
+                                        label: const Text('Work Sans'),
                                       ),
                                       ButtonSegment<String>(
                                         value: 'Courier Prime',

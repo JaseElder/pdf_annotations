@@ -12,13 +12,12 @@ class PanLayer extends StatelessWidget {
     return RawGestureDetector(
       key: gDKey,
       gestures: {
-        AllowMultipleGestureRecognizer:
-            GestureRecognizerFactoryWithHandlers<AllowMultipleGestureRecognizer>(
-              () => AllowMultipleGestureRecognizer(),
-              (AllowMultipleGestureRecognizer instance) {
-                instance.onStart = onDragStart;
-              },
-            ),
+        AllowMultipleGestureRecognizer: GestureRecognizerFactoryWithHandlers<AllowMultipleGestureRecognizer>(
+          () => AllowMultipleGestureRecognizer(),
+          (AllowMultipleGestureRecognizer instance) {
+            instance.onStart = onDragStart;
+          },
+        ),
       },
       behavior: .translucent,
     );

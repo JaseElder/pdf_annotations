@@ -33,9 +33,7 @@ class DrawingRenderer extends CustomPainter {
       final annotationInherentOpacity = lineAnnotation.colour.a;
       final isLatestUndo = latestUndo.id == lineAnnotation.id && latestUndo.type == kLineAnnotation;
       final isLatestRedo =
-          latestRedo.id == lineAnnotation.id &&
-          latestRedo.type == kLineAnnotation &&
-          lineAnnotation.isActive;
+          latestRedo.id == lineAnnotation.id && latestRedo.type == kLineAnnotation && lineAnnotation.isActive;
       if (lineAnnotation.isActive || isLatestUndo || isLatestRedo) {
         paint.color = (isLatestUndo)
             ? lineAnnotation.colour.withValues(alpha: opacity * annotationInherentOpacity)

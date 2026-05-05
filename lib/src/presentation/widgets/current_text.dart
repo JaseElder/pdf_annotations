@@ -80,47 +80,46 @@ class _CurrentTextState extends State<CurrentText> {
                     second: provider.fontSizeNotifier,
                     third: provider.fontFamilyNotifier,
                     fourth: provider.textFocusNodeNotifier,
-                    builder:
-                        (context, annotationColour, fontSize, fontFamily, textFocusNode, child) {
-                          return IntrinsicWidth(
-                            child: Focus(
-                              child: TextField(
-                                decoration: _decoration,
-                                autocorrect: false,
-                                enableSuggestions: false,
-                                cursorColor: annotationColour,
-                                style: TextStyle(
-                                  height: 1.15,
-                                  letterSpacing: 0.0,
-                                  fontSize: fontSize * widget.scale,
-                                  fontFamily: fontFamily,
-                                  fontWeight: .w600,
-                                  color: annotationColour,
-                                ),
-                                controller: widget.textFieldController,
-                                focusNode: textFocusNode,
-                                contextMenuBuilder: null,
-                                enableInteractiveSelection: false,
-                                maxLines: 1,
-                                onChanged: (text) {
-                                  if (text.length == 1) {
-                                    widget.onFirstCharacterEntry();
-                                  }
-                                },
-                                onTapOutside: (_) {
-                                  provider.textFieldShowingNotifier.value = false;
-                                  widget.onTapOutside(widget.textFieldController.text);
-                                },
-                              ),
-                              onFocusChange: (hasFocus) {
-                                if (!hasFocus) {
-                                  provider.textFieldShowingNotifier.value = false;
-                                  widget.onTapOutside(widget.textFieldController.text);
-                                }
-                              },
+                    builder: (context, annotationColour, fontSize, fontFamily, textFocusNode, child) {
+                      return IntrinsicWidth(
+                        child: Focus(
+                          child: TextField(
+                            decoration: _decoration,
+                            autocorrect: false,
+                            enableSuggestions: false,
+                            cursorColor: annotationColour,
+                            style: TextStyle(
+                              height: 1.15,
+                              letterSpacing: 0.0,
+                              fontSize: fontSize * widget.scale,
+                              fontFamily: fontFamily,
+                              fontWeight: .w600,
+                              color: annotationColour,
                             ),
-                          );
-                        },
+                            controller: widget.textFieldController,
+                            focusNode: textFocusNode,
+                            contextMenuBuilder: null,
+                            enableInteractiveSelection: false,
+                            maxLines: 1,
+                            onChanged: (text) {
+                              if (text.length == 1) {
+                                widget.onFirstCharacterEntry();
+                              }
+                            },
+                            onTapOutside: (_) {
+                              provider.textFieldShowingNotifier.value = false;
+                              widget.onTapOutside(widget.textFieldController.text);
+                            },
+                          ),
+                          onFocusChange: (hasFocus) {
+                            if (!hasFocus) {
+                              provider.textFieldShowingNotifier.value = false;
+                              widget.onTapOutside(widget.textFieldController.text);
+                            }
+                          },
+                        ),
+                      );
+                    },
                   ),
                 ),
               );

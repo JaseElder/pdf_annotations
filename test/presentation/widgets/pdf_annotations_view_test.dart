@@ -311,8 +311,7 @@ void main() {
 
       // Capture and invoke setPopInvoked
       final setPopInvoked =
-          verify(() => mockController.setPopInvoked = captureAny()).captured.single
-              as void Function();
+          verify(() => mockController.setPopInvoked = captureAny()).captured.single as void Function();
 
       setPopInvoked();
       await tester.pump();
@@ -347,8 +346,7 @@ void main() {
 
       // Capture setEditMode and switch to draw
       final setEditMode =
-          verify(() => mockController.setEditMode = captureAny()).captured.single
-              as void Function(EditMode);
+          verify(() => mockController.setEditMode = captureAny()).captured.single as void Function(EditMode);
 
       setEditMode(EditMode.draw);
       await tester.pump();

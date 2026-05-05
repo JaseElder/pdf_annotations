@@ -1,8 +1,29 @@
-enum QualityValue { low, high }
+enum QualityValue {
+  /// Drawing annotations are displayed and saved as line segments
+  low,
 
-enum EditMode { text, draw, pan }
+  /// Drawing annotations are displayed and saved as quadratic beziers
+  high,
+}
 
-enum LineMode { pen, highlighter }
+enum EditMode {
+  /// The mode for text input
+  text,
+
+  /// The mode for drawing annotations
+  draw,
+
+  /// The mode for pdf panning and scrolling
+  pan,
+}
+
+enum LineMode {
+  /// Thin opaque line
+  pen,
+
+  /// Thick translucent line
+  highlighter,
+}
 
 enum SaveStateResult {
   /// The state was successfully saved to a new file.

@@ -18,6 +18,5 @@ class AddedAnnotation {
   }
 
   @override
-  String toString() =>
-      'AddedAnnotation{annotationType: $annotationType, id: $id isActive: $isActive}';
+  String toString() => 'AddedAnnotation{annotationType: $annotationType, id: $id isActive: $isActive}';
 }
