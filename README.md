@@ -1,5 +1,9 @@
 # pdf_annotations
 
+[![pub package](https://img.shields.io/pub/v/pdf_annotations.svg)](https://pub.dev/packages/pdf_annotations)
+[![GitHub License](https://img.shields.io/github/license/JaseElder/pdf_annotations)](https://github.com/JaseElder/pdf_annotations/blob/main/LICENSE)
+[![platform](https://img.shields.io/badge/platform-Android%20%7C%20iOS-green.svg)](https://pub.dev/packages/pdf_annotations)
+
 A Flutter plugin for adding text and freehand annotations to PDF documents.
 
 This package provides a `PdfAnnotationsView` widget that displays a PDF and allows users to draw lines (pen/highlighter) and add text annotations on top of it. It supports zooming, panning, undo/redo, and saving the annotations back to a new PDF file.
@@ -8,7 +12,7 @@ This package provides a `PdfAnnotationsView` widget that displays a PDF and allo
 
 *   **View PDFs**: Render PDF documents with zoom and pan capabilities.
 *   **Freehand Drawing**: Draw on the PDF using a pen or highlighter tool.
-*   **Text Annotations**: Add text labels at specific locations.
+*   **Text Annotations**: Add text to the PDF. Drag and drop the current text annotation to move it around the PDF 
 *   **Customization**: enhancing color, stroke width, font size, and font family.
 *   **Undo/Redo**: robust state management for annotation actions.
 *   **Save & Export**: Merge annotations into the PDF and save as a new file.
@@ -19,7 +23,7 @@ Add `pdf_annotations` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  pdf_annotations: ^1.0.0
+  pdf_annotations: ^1.0.0-beta.2
 ```
 
 ## Usage

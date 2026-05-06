@@ -1,3 +1,8 @@
+## 1.0.0-beta.2
+
+* Updated read me and description.
+
+
 ## 1.0.0-beta.1
 
 *   Initial release with `PdfAnnotationsView` widget.
