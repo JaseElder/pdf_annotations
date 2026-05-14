@@ -119,10 +119,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_pdfview
-      sha256: "10235d8a98c3812fede52a6fc628f9afb4b91e3c9fd8993be64f5491e8cbd1cd"
+      sha256: b23b89909bfebe615fe0012489bceaaefdbb7a1486b2195c3296624966110f59
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.5-beta.2"
+    version: "1.4.5-beta.3"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -352,7 +352,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.0.0-beta.1"
+    version: "1.0.0-beta.3"
   platform:
     dependency: transitive
     description:

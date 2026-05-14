@@ -1,3 +1,8 @@
+## 1.0.0-beta.3
+
+* Updated flutter_pdfview dependency.
+
+
 ## 1.0.0-beta.2
 
 * Updated read me and description.

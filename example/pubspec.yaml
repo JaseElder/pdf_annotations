@@ -26,7 +26,7 @@ dependencies:
     path: ../
 
   path_provider: ^2.1.5
-  flutter_pdfview: ^1.4.5-beta.2
+  flutter_pdfview: ^1.4.5-beta.3
 #    git: https://github.com/endigo/flutter_pdfview.git
 #    git: https://github.com/JaseElder/flutter_pdfview.git
 #    path: /Users/jasonelder/Documents/Flutter/flutter_pdfview
