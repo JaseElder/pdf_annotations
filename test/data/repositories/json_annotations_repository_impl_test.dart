@@ -70,11 +70,11 @@ void main() {
       final addedAnnotations = [AddedAnnotation('line', 'line1'), AddedAnnotation('text', 'text1')];
 
       final result = await repository.saveAnnotationsState(
+        pdfPath: pdfPath,
+        vpPosition: vpPosition,
         lineAnnotations: lineAnnotations,
         textAnnotations: textAnnotations,
-        vpPosition: vpPosition,
         overlayWidthScaled: overlayWidthScaled,
-        pdfPath: pdfPath,
         addedAnnotations: addedAnnotations,
         annotationQuality: .low,
       );
@@ -83,10 +83,10 @@ void main() {
       expect((result as Success).data, SaveStateResult.fileCreated);
 
       final loadResult = await repository.loadAnnotationsState(
-        shortestSideEstimate: 200,
         pdfPath: pdfPath,
-        overlayWidthScaled: overlayWidthScaled,
         vpPosition: vpPosition,
+        shortestSideEstimate: 200,
+        overlayWidthScaled: overlayWidthScaled,
       );
 
       expect(loadResult, isA<Success>());
@@ -111,11 +111,11 @@ void main() {
       final addedAnnotations = [AddedAnnotation('line', 'line1'), AddedAnnotation('text', 'text1')];
 
       final result = await repository.saveAnnotationsState(
+        pdfPath: pdfPath,
+        vpPosition: vpPosition,
         lineAnnotations: lineAnnotations,
         textAnnotations: textAnnotations,
-        vpPosition: vpPosition,
         overlayWidthScaled: overlayWidthScaled,
-        pdfPath: pdfPath,
         addedAnnotations: addedAnnotations,
         annotationQuality: .low,
       );
@@ -124,11 +124,11 @@ void main() {
       expect((result as Success).data, SaveStateResult.fileCreated);
 
       final result2 = await repository.saveAnnotationsState(
+        pdfPath: pdfPath,
+        vpPosition: vpPosition,
         lineAnnotations: lineAnnotations,
         textAnnotations: textAnnotations,
-        vpPosition: vpPosition,
         overlayWidthScaled: overlayWidthScaled,
-        pdfPath: pdfPath,
         addedAnnotations: addedAnnotations,
         annotationQuality: .low,
       );
@@ -137,10 +137,10 @@ void main() {
       expect((result2 as Success).data, SaveStateResult.noChange);
 
       final loadResult = await repository.loadAnnotationsState(
-        shortestSideEstimate: 200,
         pdfPath: pdfPath,
-        overlayWidthScaled: overlayWidthScaled,
         vpPosition: vpPosition,
+        shortestSideEstimate: 200,
+        overlayWidthScaled: overlayWidthScaled,
       );
 
       expect(loadResult, isA<Success>());
@@ -156,10 +156,10 @@ void main() {
       const pdfPath = 'non_existent.pdf';
 
       final loadResult = await repository.loadAnnotationsState(
-        shortestSideEstimate: 200,
         pdfPath: pdfPath,
-        overlayWidthScaled: 100,
         vpPosition: Offset.zero,
+        shortestSideEstimate: 200,
+        overlayWidthScaled: 100,
       );
 
       expect(loadResult, isA<Success>());
@@ -177,10 +177,10 @@ void main() {
       await file.writeAsString('{ invalid json: [ }');
 
       final loadResult = await repository.loadAnnotationsState(
-        shortestSideEstimate: 200,
         pdfPath: pdfPath,
-        overlayWidthScaled: 100,
         vpPosition: Offset.zero,
+        shortestSideEstimate: 200,
+        overlayWidthScaled: 100,
       );
 
       expect(loadResult, isA<Failure>());
@@ -201,11 +201,11 @@ void main() {
       final addedAnnotations = [AddedAnnotation('line', 'line1'), AddedAnnotation('text', 'text1')];
 
       final result = await repository.saveAnnotationsState(
+        pdfPath: pdfPath,
+        vpPosition: vpPosition,
         lineAnnotations: lineAnnotations,
         textAnnotations: textAnnotations,
-        vpPosition: vpPosition,
         overlayWidthScaled: overlayWidthScaled,
-        pdfPath: pdfPath,
         addedAnnotations: addedAnnotations,
         annotationQuality: .low,
       );
@@ -214,10 +214,10 @@ void main() {
       expect((result as Success).data, SaveStateResult.noChange);
 
       final loadResult = await repository.loadAnnotationsState(
-        shortestSideEstimate: 200,
         pdfPath: pdfPath,
-        overlayWidthScaled: overlayWidthScaled,
         vpPosition: vpPosition,
+        shortestSideEstimate: 200,
+        overlayWidthScaled: overlayWidthScaled,
       );
 
       expect(loadResult, isA<Success>());

@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:nanoid/nanoid.dart';
 
+import '../../utilities/id_generator.dart';
 import 'annotation_base.dart';
 
 class TextAnnotation extends Equatable implements AnnotationBase {
@@ -26,7 +26,7 @@ class TextAnnotation extends Equatable implements AnnotationBase {
     this.colour, [
     this.isActive = true,
     String? id,
-  ]) : id = id ?? nanoid(4),
+  ]) : id = id ?? generateId(),
        originalCoordinate = coordinate;
 
   TextAnnotation copyWith({

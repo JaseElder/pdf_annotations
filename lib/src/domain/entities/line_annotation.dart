@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:nanoid/nanoid.dart';
 
+import '../../utilities/id_generator.dart';
 import 'annotation_base.dart';
 
 class LineAnnotation extends Equatable implements AnnotationBase {
@@ -15,7 +15,7 @@ class LineAnnotation extends Equatable implements AnnotationBase {
 
   LineAnnotation(List<Offset> line, this.colour, this.width, [this.isActive = true, String? id])
     : line = List.unmodifiable(line),
-      id = id ?? nanoid(4);
+      id = id ?? generateId();
 
   LineAnnotation copyWith({
     String? id,

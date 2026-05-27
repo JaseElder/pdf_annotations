@@ -1,3 +1,9 @@
+## 1.0.0-beta.4
+
+* Updates minimum supported SDK version to Flutter 3.44/Dart 3.12.
+* Migrates to built-in Kotlin
+* Added SPM support
+
 ## 1.0.0-beta.3
 
 * Updated flutter_pdfview dependency.

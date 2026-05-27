@@ -9,7 +9,6 @@ import '../../domain/entities/text_annotation.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums.dart';
 import '../../utilities/errors.dart';
-import '../../utilities/logger.dart';
 import 'all_overlay_widgets.dart';
 import 'current_line_renderer.dart';
 import 'current_text.dart';
@@ -650,7 +649,7 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
     _pluginState.pdfOffsetNotifier.value = newPdfOffset;
   }
 
-  Future<void> _loadPreviousSave() async {
+  Future<TaskResult<List<AddedAnnotation>>> _loadPreviousSave() async {
     final result = await _pluginState.loadPreviousSavedJson(
       pdfPath: widget.pdfPath,
       viewportPosition: _vpPosition,
@@ -658,12 +657,11 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
       shortestSideEstimate: MediaQuery.sizeOf(context).shortestSide,
     );
 
-    switch (result) {
-      case Success(data: final addedAnnotations):
-        _addedAnnotations = addedAnnotations;
-      case Failure(message: final msg):
-        logger.e(msg);
+    if (result case Success(:final data)) {
+      _addedAnnotations = data;
     }
+
+    return result;
   }
 
   Future<TaskResult<SaveStateResult>> _saveProgress() async {

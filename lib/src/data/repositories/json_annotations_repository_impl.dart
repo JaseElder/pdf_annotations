@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:collection/collection.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -17,16 +16,15 @@ import '../../utilities/errors.dart';
 class JsonAnnotationsRepositoryImpl implements JsonAnnotationsRepository {
   final String _savedAnnotationsJsonSuffix;
 
-  JsonAnnotationsRepositoryImpl({required String savedAnnotationsJsonSuffix})
-    : _savedAnnotationsJsonSuffix = savedAnnotationsJsonSuffix;
+  JsonAnnotationsRepositoryImpl({required this._savedAnnotationsJsonSuffix});
 
   @override
   Future<TaskResult<SaveStateResult>> saveAnnotationsState({
-    required List<LineAnnotation> lineAnnotations,
-    required List<TextAnnotation> textAnnotations,
+    required String pdfPath,
     required Offset vpPosition,
     required double overlayWidthScaled,
-    required String pdfPath,
+    required List<LineAnnotation> lineAnnotations,
+    required List<TextAnnotation> textAnnotations,
     required List<AddedAnnotation> addedAnnotations,
     required QualityValue annotationQuality,
   }) async {
@@ -39,10 +37,10 @@ class JsonAnnotationsRepositoryImpl implements JsonAnnotationsRepository {
     }
 
     final annotationMap = await _generateAnnotationMap(
+      vpPosition: vpPosition,
       overlayWidthScaled: overlayWidthScaled,
       textAnnotations: textAnnotations,
       lineAnnotations: lineAnnotations,
-      vpPosition: vpPosition,
       addedAnnotations: addedAnnotations,
       annotationQuality: annotationQuality,
     );
@@ -96,10 +94,10 @@ class JsonAnnotationsRepositoryImpl implements JsonAnnotationsRepository {
   }
 
   Future<Map<String, dynamic>> _generateAnnotationMap({
+    required Offset vpPosition,
     required double overlayWidthScaled,
     required List<TextAnnotation> textAnnotations,
     required List<LineAnnotation> lineAnnotations,
-    required Offset vpPosition,
     required List<AddedAnnotation> addedAnnotations,
     required QualityValue annotationQuality,
   }) async {
@@ -117,9 +115,32 @@ class JsonAnnotationsRepositoryImpl implements JsonAnnotationsRepository {
   Future<bool> _compareContents(File file, Map<String, dynamic> newAnnotations) async {
     String fileContents = await file.readAsString();
     Map<String, dynamic> fileJson = json.decode(fileContents);
-    final equality = const DeepCollectionEquality().equals;
 
-    return equality(fileJson, newAnnotations);
+    return _isDeepEqual(fileJson, newAnnotations);
+  }
+
+  bool _isDeepEqual(dynamic a, dynamic b) {
+    if (identical(a, b)) return true;
+
+    if (a is Map && b is Map) {
+      if (a.length != b.length) return false;
+      for (final key in a.keys) {
+        if (!b.containsKey(key) || !_isDeepEqual(a[key], b[key])) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    if (a is List && b is List) {
+      if (a.length != b.length) return false;
+      for (int i = 0; i < a.length; i++) {
+        if (!_isDeepEqual(a[i], b[i])) return false;
+      }
+      return true;
+    }
+
+    return a == b;
   }
 
   @override
@@ -134,10 +155,10 @@ class JsonAnnotationsRepositoryImpl implements JsonAnnotationsRepository {
     >
   >
   loadAnnotationsState({
-    required double shortestSideEstimate,
     required String pdfPath,
-    required double overlayWidthScaled,
     required Offset vpPosition,
+    required double shortestSideEstimate,
+    required double overlayWidthScaled,
   }) async {
     try {
       List<AddedAnnotation> addedAnnotations = [];

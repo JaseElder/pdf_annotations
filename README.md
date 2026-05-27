@@ -23,7 +23,7 @@ Add `pdf_annotations` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  pdf_annotations: ^1.0.0-beta.3
+  pdf_annotations: ^1.0.0-beta.4
 ```
 
 ## Usage

@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart' as pdf_view;
 import 'package:keyboard_height_plugin/keyboard_height_plugin.dart';
+import 'package:native_device_orientation/native_device_orientation.dart';
 import 'package:transparent_pointer/transparent_pointer.dart';
 
 import '../../data/models/pdf_font.dart';
@@ -12,7 +14,6 @@ import '../../data/repositories/pdf_annotations_repository_impl.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums.dart';
 import '../../utilities/errors.dart';
-import '../../utilities/logger.dart';
 import 'drawing_overlay.dart';
 import 'pdf_doc_view.dart';
 
@@ -224,6 +225,12 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView> with SingleTick
     _pluginState.undoEnabledNotifier.addListener(_onUndoAvailabilityChanged);
     _pluginState.redoEnabledNotifier.addListener(_onRedoAvailabilityChanged);
     _pluginState.annotationQualityNotifier.addListener(_onAnnotationQualityChanged);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final orientation = await NativeDeviceOrientationCommunicator().orientation();
+      final deviceOrientation = nativeToDeviceOrientationMap[orientation] ?? .portraitUp;
+      SystemChrome.setPreferredOrientations([deviceOrientation]);
+    });
   }
 
   @override
@@ -243,6 +250,71 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView> with SingleTick
     _animationController.dispose();
     _pluginState.dispose();
     super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (_, _) {
+        SystemChrome.setPreferredOrientations([]);
+      },
+      child: ValueListenableBuilder<EditMode>(
+        valueListenable: _pluginState.editModeNotifier,
+        builder: (context, value, child) {
+          return PluginStateProvider(
+            _pluginState,
+            child: Stack(
+              children: [
+                Column(
+                  children: [
+                    Expanded(
+                      child: PdfDocView(
+                        pdfPath: widget.pdfPath,
+                        defaultPage: widget.startPage,
+                        onViewCreated: _onViewCreated,
+                        onRender: _onRender,
+                        onDraw: _onDraw,
+                        onPageChanged: _onPageChanged,
+                        onError: _onError,
+                        onPageError: _onPageError,
+                      ),
+                    ),
+                    SizedBox(
+                      width: .infinity,
+                      height: _pluginState.cursorAdjustmentForKeyboardHeightNotifier.value,
+                    ),
+                  ],
+                ),
+                Visibility(
+                  visible: !_isProgressVisible,
+                  child: TransparentPointer(
+                    transparent: Platform.isAndroid || _pluginState.editMode == .pan,
+                    child: DrawingOverlay(
+                      drawingOverlayController: _drawingOverlayController,
+                      pdfPath: widget.pdfPath,
+                      onInsertionPointModified: _onInsertionPointModified,
+                      onError: _onError,
+                    ),
+                  ),
+                ),
+                Visibility(
+                  visible: _isProgressVisible || _showExitProgress,
+                  child: Container(
+                    width: .infinity,
+                    height: .infinity,
+                    color: _showExitProgress ? Colors.white : Colors.transparent,
+                    child: Center(
+                      child: CircularProgressIndicator(color: widget.progressIndicatorColour),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 
   void _onViewCreated(pdf_view.PDFViewController controller) {
@@ -372,65 +444,6 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView> with SingleTick
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<EditMode>(
-      valueListenable: _pluginState.editModeNotifier,
-      builder: (context, value, child) {
-        return PluginStateProvider(
-          _pluginState,
-          child: Stack(
-            children: [
-              Column(
-                children: [
-                  Expanded(
-                    child: PdfDocView(
-                      pdfPath: widget.pdfPath,
-                      defaultPage: widget.startPage,
-                      onViewCreated: _onViewCreated,
-                      onRender: _onRender,
-                      onDraw: _onDraw,
-                      onPageChanged: _onPageChanged,
-                      onError: _onError,
-                      onPageError: _onPageError,
-                    ),
-                  ),
-                  SizedBox(
-                    width: .infinity,
-                    height: _pluginState.cursorAdjustmentForKeyboardHeightNotifier.value,
-                  ),
-                ],
-              ),
-              Visibility(
-                visible: !_isProgressVisible,
-                child: TransparentPointer(
-                  transparent: Platform.isAndroid || _pluginState.editMode == .pan,
-                  child: DrawingOverlay(
-                    drawingOverlayController: _drawingOverlayController,
-                    pdfPath: widget.pdfPath,
-                    onInsertionPointModified: _onInsertionPointModified,
-                    onError: _onError,
-                  ),
-                ),
-              ),
-              Visibility(
-                visible: _isProgressVisible || _showExitProgress,
-                child: Container(
-                  width: .infinity,
-                  height: .infinity,
-                  color: _showExitProgress ? Colors.white : Colors.transparent,
-                  child: Center(
-                    child: CircularProgressIndicator(color: widget.progressIndicatorColour),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   Future<void> _onInsertionPointModified(double adjustedHeight) async {
     if (_pdfViewController == null) {
       return;
@@ -494,7 +507,6 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView> with SingleTick
   }
 
   Future<TaskResult<bool>> _addAnnotationsToPdf() async {
-    logger.w('start add annotations ${DateTime.now()}');
     final pdfPath = widget.pdfPath;
     if (pdfPath == '' || _pdfViewController == null) {
       return Success(false);
@@ -521,7 +533,6 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView> with SingleTick
       viewportOffset: vpOffset,
       overlayScale: overlayScale,
     );
-    logger.w('end add annotations ${DateTime.now()}');
     return result;
   }
 

@@ -141,12 +141,12 @@ class PluginState {
     required List<AddedAnnotation> addedAnnotations,
   }) async {
     final result = await _jsonAnnotationsRepository.saveAnnotationsState(
+      pdfPath: pdfPath,
+      vpPosition: viewportPosition,
       lineAnnotations: lineAnnotationsListNotifier.value,
       textAnnotations: textAnnotationsListNotifier.value,
       addedAnnotations: addedAnnotations,
-      vpPosition: viewportPosition,
       overlayWidthScaled: scaledOverlayWidth,
-      pdfPath: pdfPath,
       annotationQuality: annotationQualityNotifier.value,
     );
 
