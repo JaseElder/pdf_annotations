@@ -5,11 +5,6 @@ description: "Demonstrates how to use the pdf_annotations plugin."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 0.0.1
 
-topics:
-  - pdf
-  - annotations
-  - drawing
-
 environment:
   sdk: ^3.10.0
 
@@ -25,8 +20,8 @@ dependencies:
     # the parent directory to use the current plugin's version.
     path: ../
 
-  path_provider: ^2.1.5
-  flutter_pdfview: ^1.4.5-beta.3
+  path_provider: ^2.1.6
+  flutter_pdfview: ^1.4.5
 #    git: https://github.com/endigo/flutter_pdfview.git
 #    path: /Users/jasonelder/Documents/Flutter/flutter_pdfview
 

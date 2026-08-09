@@ -1,3 +1,8 @@
+## 1.0.0
+
+* upgraded dependencies, including `flutter_pdfview` to non-beta version.
+* removed generate_all_pigeons shell script and replaced it with tool/generate.dart to generate the pigeon api, reformat it to meet pana requirements, and remove the meta dependency.
+
 ## 1.0.0-beta.4
 
 * Updates minimum supported SDK version to Flutter 3.44/Dart 3.12.
