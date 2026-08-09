@@ -1,3 +1,7 @@
+## 1.0.0+1
+
+* Fixed version typo in README.md.
+
 ## 1.0.0
 
 * upgraded dependencies, including `flutter_pdfview` to non-beta version.

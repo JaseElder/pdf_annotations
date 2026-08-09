@@ -12,7 +12,7 @@ This package provides a `PdfAnnotationsView` widget that displays a PDF and allo
 
 *   **View PDFs**: Render PDF documents with zoom and pan capabilities.
 *   **Freehand Drawing**: Draw on the PDF using a pen or highlighter tool.
-*   **Text Annotations**: Add text to the PDF. Drag and drop the current text annotation to move it around the PDF 
+*   **Text Annotations**: Add text to the PDF. Drag and drop the current text annotation to move it around the PDF.
 *   **Customization**: enhancing color, stroke width, font size, and font family.
 *   **Undo/Redo**: robust state management for annotation actions.
 *   **Save & Export**: Merge annotations into the PDF and save as a new file.
