@@ -1,12 +1,12 @@
 import 'dart:io';
 
 void main() async {
-  print('Generating Pigeon files...');
+  stdout.writeln('Generating Pigeon files...');
 
   final pigeonFiles = Directory('pigeons').listSync().where((file) => file.path.endsWith('.dart'));
 
   for (final file in pigeonFiles) {
-    print('Processing ${file.path}...');
+    stdout.writeln('Processing ${file.path}...');
     final result = await Process.run('dart', [
       'run',
       'pigeon',
@@ -15,14 +15,14 @@ void main() async {
     ]);
 
     if (result.exitCode != 0) {
-      print('Error generating Pigeon for ${file.path}:');
-      print(result.stdout);
-      print(result.stderr);
+      stdout.writeln('Error generating Pigeon for ${file.path}:');
+      stdout.writeln(result.stdout);
+      stdout.writeln(result.stderr);
       exit(1);
     }
   }
 
-  print('Post-processing generated Dart files to remove meta dependency...');
+  stdout.writeln('Post-processing generated Dart files to remove meta dependency...');
 
   final generatedDir = Directory('lib/generated');
   if (generatedDir.existsSync()) {
@@ -32,7 +32,7 @@ void main() async {
       if (file is File) {
         final content = file.readAsStringSync();
         if (content.contains("import 'package:meta/meta.dart'")) {
-          print('Removing meta import from ${file.path}');
+          stdout.writeln('Removing meta import from ${file.path}');
           // Regex to remove the import line and the following newline
           final updatedContent = content.replaceFirst(
             RegExp(r"import 'package:meta/meta.dart' show .*;\n+"),
@@ -43,11 +43,11 @@ void main() async {
       }
     }
 
-    final result = await Process.run('dart', [
+    await Process.run('dart', [
       'format',
       'lib/generated/.',
     ]);
   }
 
-  print('Generation complete.');
+  stdout.writeln('Generation complete.');
 }
