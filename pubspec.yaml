@@ -1,6 +1,6 @@
 name: pdf_annotations
-description: "A plugin that enables adding text and freehand annotations to existing pdfs through a configurable widget. No subscriptions needed."
-version: 1.0.0+1
+description: "A plugin that enables adding text and freehand annotations to existing PDFs through a configurable widget. No subscriptions needed."
+version: 1.0.0+2
 homepage: https://github.com/JaseElder/pdf_annotations
 
 topics:

@@ -17,9 +17,23 @@ import '../../utilities/errors.dart';
 import 'drawing_overlay.dart';
 import 'pdf_doc_view.dart';
 
+/// Signature for callbacks that report changes to the PDF zoom level.
 typedef ZoomUpdateCallback = void Function(double newZoom);
+
+/// Signature for callbacks that report changes to the PDF scroll position.
+///
+/// The [newOffset] represents the normalized scroll position within the document.
 typedef OffsetChangedCallback = void Function(Offset newOffset);
+
+/// Signature for callbacks that monitor whether an annotation text field is
+/// currently active and visible on the screen.
+///
+/// [showing] is true when a text field is focused and typically accompanied
+/// by the system keyboard.
 typedef TextFieldShowingCallback = void Function(bool showing);
+
+/// Signature for callbacks that report updates to the rendering quality
+/// of drawing annotations.
 typedef QualityChangedCallback = void Function(QualityValue newQuality);
 
 /// Controller for [PdfAnnotationsView].
@@ -77,10 +91,14 @@ class PdfAnnotationsViewController {
   /// Returns true if registration was successful.
   late Future<bool> Function(List<PdfFont>) registerFonts;
 
-  /// Callback triggered when undo availability changes.
+  /// Called when the ability to undo an action changes.
+  ///
+  /// [isAvailable] is true if there are actions in the history that can be undone.
   void Function(bool isAvailable)? onUndoAvailabilityChanged;
 
-  /// Callback triggered when redo availability changes.
+  /// Called when the ability to redo an action changes.
+  ///
+  /// [isAvailable] is true if there are previously undone actions that can be reapplied.
   void Function(bool isAvailable)? onRedoAvailabilityChanged;
 }
 
@@ -148,22 +166,30 @@ class PdfAnnotationsView extends StatefulWidget {
   /// Controller to manage the view's state and actions.
   final PdfAnnotationsViewController pdfAnnotationsViewController;
 
-  /// Callback triggered when the page changes.
+  /// Called whenever the user navigates to a different page in the PDF.
+  ///
+  /// Returns the 0-based index of the new page.
   final PageChangedCallback? onPageChanged;
 
-  /// Callback triggered when the scroll offset changes.
+  /// Called when the PDF is scrolled or panned.
+  ///
+  /// This is useful for synchronizing external UI elements with the
+  /// PDF's current scroll position.
   final OffsetChangedCallback? onOffsetChanged;
 
-  /// Callback triggered when a text field visibility changes.
+  /// Called when a text annotation field is shown or hidden.
+  ///
+  /// Use this to adjust your UI (e.g., hiding toolbars) to provide more
+  /// space for the keyboard and text input.
   final TextFieldShowingCallback? onTextFieldShowing;
 
-  /// Callback triggered when the annotation quality changes.
+  /// Called when the [QualityValue] is updated via the controller.
   final QualityChangedCallback? onAnnotationQualityChanged;
 
-  /// Callback triggered when a general error occurs.
+  /// Called when a non-page-specific error occurs (e.g., file access issues).
   final ErrorCallback? onError;
 
-  /// Callback triggered when a page loading error occurs.
+  /// Called when an error occurs while rendering a specific PDF page.
   final PageErrorCallback? onPageError;
 
   @override

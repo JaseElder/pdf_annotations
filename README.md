@@ -4,9 +4,11 @@
 [![GitHub License](https://img.shields.io/github/license/JaseElder/pdf_annotations)](https://github.com/JaseElder/pdf_annotations/blob/main/LICENSE)
 [![platform](https://img.shields.io/badge/platform-Android%20%7C%20iOS-green.svg)](https://pub.dev/packages/pdf_annotations)
 
-A Flutter plugin for adding text and freehand annotations to PDF documents.
+A Flutter plugin for adding text and freehand annotations to PDF documents. This plugin was created to avoid having to use an external subscription-based solution.
 
-This package provides a `PdfAnnotationsView` widget that displays a PDF and allows users to draw lines (pen/highlighter) and add text annotations on top of it. It supports zooming, panning, undo/redo, and saving the annotations back to a new PDF file.
+This package provides a `PdfAnnotationsView` widget that displays a PDF and allows users to draw lines (pen/highlighter) and add text annotations on top of it. It supports panning, undo/redo, and saving the annotations back to a new PDF file.
+
+The widget is UI agnostic. Add your own UI (a rudimentary one is showcased in the example code), and communicate changes through the `PdfAnnotationsViewController`.
 
 ## Features
 
@@ -77,25 +79,48 @@ class _MyPdfViewerState extends State<MyPdfViewer> {
       ),
       body: PdfAnnotationsView(
         pdfPath: widget.pdfPath,
-        pdfDefaultScale: 1.0,
+        // Suffix for the current annotations JSON file. This enables saving session state. 
+        // Default value is '_saved_annotations.json'
+        savedAnnotationsJsonSuffix: '_anns.json',
+        // Suffix for the newly annotated PDF file. It is appended to the current PDF file name. 
+        // Default value is '_annotated.pdf'
+        bakedPdfSuffix: '_anns.pdf',
         startPage: 0,
+        // The initial scroll offset of the view. 
+        // This is to account for coming to the edit screen from a scrolled pdf
         initialOffset: Offset.zero,
         initialAnnotationColour: Colors.red,
         initialFontSize: 14.0,
         initialFontFamily: 'Arial',
+        // The text annotation is draggable. This specifies the colour of the widget background.
+        // Default is Colors.black
+        draggingTextFieldBackgroundColour: Colors.green,
+        // Default is Colors.black
+        progressIndicatorColour: Colors.orange,
+        // If the pdf to be edited was zoomed in, the widget will unzoom and scale annotations
+        // appropriately. This parameter specifies what the pdf zoom level was on entering the 
+        // edit widget.
         pdfZoom: 1.0,
         pdfAnnotationsViewController: _controller,
-        onZoomUpdate: (zoom) {
-          // Handle zoom update
-        },
-        onDefaultScaleUpdate: (scale) {
-          // Handle scale update
-        },
         onPageChanged: (page) {
           print('Page changed to: $page');
         },
+        // This callback enables tracking of any offset changes in the edit, to communicate back 
+        // to a pdf view widget and alter its offset.
+        onOffsetChanged: (offset) {
+          print('Offset changed to: $offset');
+        },
+        onTextFieldShowing: (isShowing) {
+          print('Text field is showing: $isShowing');
+        },
+        onAnnotationQualityChanged: (newQuality) {
+          print('Annotation quality has changed to: $newQuality');
+        },
         onError: (error) {
           print('Error: $error');
+        },
+        onPageError: (pageNo, error) {
+          print('Page $pageNo has error: $error');
         },
       ),
       bottomNavigationBar: BottomAppBar(
@@ -130,8 +155,8 @@ The `PdfAnnotationsViewController` exposes several methods to interact with the 
 *   `redo()`: Redo the last undone action.
 *   `saveAnnotations()`: Save the current annotations to the file system.
 *   `setAnnotationColour(Color color)`: Change the current drawing/text color.
-*   `setLineMode(LineMode mode)`: Switch between `pen` and `highlighter`.
-*   `setEditMode(EditMode mode)`: Switch between `text`, `draw`, and `pan` modes.
+*   `setLineMode(LineMode mode)`: Switch between `.pen` and `.highlighter`.
+*   `setEditMode(EditMode mode)`: Switch between `.text`, `.draw`, and `.pan` modes.
 *   `setFontSize(double size)`: Set the font size for text annotations.
 *   `setFontFamily(String family)`: Set the font family for text annotations.
 

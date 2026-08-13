@@ -1,30 +1,36 @@
+/// Defines the rendering and persistence quality for drawing annotations.
 enum QualityValue {
-  /// Drawing annotations are displayed and saved as line segments
+  /// Drawing annotations are displayed and saved as line segments.
   low,
 
-  /// Drawing annotations are displayed and saved as quadratic beziers
+  /// Drawing annotations are displayed and saved as quadratic beziers.
   high,
 }
 
+/// Represents the current interaction state of the PDF editing widget.
 enum EditMode {
-  /// The mode for text input
+  /// Allows the user to place text annotations.
   text,
 
-  /// The mode for drawing annotations
+  /// Enables freehand drawing using the currently selected [LineMode].
   draw,
 
-  /// The mode for pdf panning and scrolling
+  /// Disables annotation tools to allow for standard PDF navigation,
+  /// including panning and scrolling.
   pan,
 }
 
+/// Specifies the visual style and behavior of drawing strokes.
 enum LineMode {
-  /// Thin opaque line
+  /// Thin opaque line for sketching.
   pen,
 
-  /// Thick translucent line
+  /// A thick, semi-transparent line designed to emphasize underlying text
+  /// without obscuring it.
   highlighter,
 }
 
+/// The result of a state persistence operation.
 enum SaveStateResult {
   /// The state was successfully saved to a new file.
   fileCreated,
