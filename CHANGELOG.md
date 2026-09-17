@@ -1,3 +1,7 @@
+## 1.0.1
+
+* Updated dependencies.
+
 ## 1.0.0+2
 
 * Fixed example usage code in README.md.
