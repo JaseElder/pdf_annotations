@@ -21,9 +21,7 @@ dependencies:
     path: ../
 
   path_provider: ^2.1.6
-  flutter_pdfview: ^1.4.5
-#    git: https://github.com/endigo/flutter_pdfview.git
-#    path: /Users/jasonelder/Documents/Flutter/flutter_pdfview
+  pdfrx: ^2.6.5
 
 dev_dependencies:
   integration_test:

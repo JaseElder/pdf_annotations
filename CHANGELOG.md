@@ -1,3 +1,9 @@
+## 1.0.2
+
+* moved from `flutter_pdfview` library to `pdfrx` library as the underlying Android native `AndroidPdfViewer` has problems with very large pdfs.
+* added more tests for coverage.
+* Updated dependencies.
+
 ## 1.0.1
 
 * Updated dependencies.

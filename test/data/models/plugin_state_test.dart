@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pdf_annotations/src/data/models/plugin_state.dart';
+import 'package:pdf_annotations/src/domain/entities/added_annotation.dart';
 import 'package:pdf_annotations/src/domain/entities/line_annotation.dart';
 import 'package:pdf_annotations/src/domain/entities/text_annotation.dart';
 import 'package:pdf_annotations/src/utilities/enums.dart';
+import 'package:pdf_annotations/src/utilities/errors.dart';
 
 void main() {
   group('PluginState', () {
@@ -258,5 +260,49 @@ void main() {
         expect(pluginState.redoEnabledNotifier.value, isTrue);
       },
     );
+
+    test('saveAnnotationsToJson should handle Failure', () async {
+      final result = await pluginState.saveAnnotationsToJson(
+        pdfPath: '', // Intentionally invalid path to trigger a failure in JsonAnnotationsRepository
+        viewportPosition: Offset.zero,
+        scaledOverlayWidth: 1.0,
+        addedAnnotations: [],
+      );
+      expect(result, isA<Failure<SaveStateResult>>());
+    });
+
+    test('loadPreviousSavedJson should handle Failure', () async {
+      final result = await pluginState.loadPreviousSavedJson(
+        pdfPath: '', // Intentionally invalid path
+        viewportPosition: Offset.zero,
+        scaledOverlayWidth: 1.0,
+        shortestSideEstimate: 1.0,
+      );
+      expect(result, isA<Failure<List<AddedAnnotation>>>());
+    });
+
+    testWidgets('PluginStateProvider updateShouldNotify returns true on new instances', (tester) async {
+      final state1 = PluginState(
+        savedAnnotationsJsonSuffix: 'test.json',
+        initialOffset: const Offset(10, 20),
+        initialAnnotationColour: Colors.blue,
+        draggingTextFieldBackgroundColour: Colors.grey,
+        initialFontSize: 24.0,
+        initialFontFamily: 'Helvetica',
+      );
+      final state2 = PluginState(
+        savedAnnotationsJsonSuffix: 'test.json',
+        initialOffset: const Offset(10, 20),
+        initialAnnotationColour: Colors.blue,
+        draggingTextFieldBackgroundColour: Colors.grey,
+        initialFontSize: 24.0,
+        initialFontFamily: 'Helvetica',
+      );
+
+      final provider1 = PluginStateProvider(state1, child: const SizedBox());
+      final provider2 = PluginStateProvider(state2, child: const SizedBox());
+
+      expect(provider1.updateShouldNotify(provider2), isTrue); // They are distinct instances
+    });
   });
 }

@@ -1,9 +1,7 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:pdfrx/pdfrx.dart';
 
-typedef ViewCreatedCallback = void Function(PDFViewController controller);
+typedef ViewCreatedCallback = void Function(PdfViewerController controller);
 typedef RenderCallback = void Function(int? pages);
 typedef PageChangedCallback = void Function(int page);
 typedef LoadCompleteCallback = void Function(int? pages);
@@ -41,7 +39,6 @@ class PdfDocView extends StatefulWidget {
   final ViewCreatedCallback? onViewCreated;
   final RenderCallback onRender;
   final PageChangedCallback? onPageChanged;
-  final LoadCompleteCallback? onLoadComplete;
   final DrawCallback? onDraw;
   final ErrorCallback? onError;
   final PageErrorCallback? onPageError;
@@ -54,7 +51,6 @@ class PdfDocView extends StatefulWidget {
     required this.onRender,
     this.onPageChanged,
     this.onViewCreated,
-    this.onLoadComplete,
     this.onDraw,
     this.onError,
     this.onPageError,
@@ -65,10 +61,29 @@ class PdfDocView extends StatefulWidget {
 }
 
 class _PdfDocViewState extends State<PdfDocView> {
-  late PDFViewController? _pdfViewController;
+  PdfViewerController? _pdfViewerController;
   var _key = UniqueKey();
 
   int _pageIndex = 0;
+
+  late final PdfViewerParams _pdfViewerParams = PdfViewerParams(
+    margin: 0.0,
+    scaleEnabled: false,
+    annotationRenderingMode: .annotation,
+    onViewerReady: (document, controller) {
+      _handleViewCreated(controller);
+      widget.onRender(document.pages.length);
+    },
+    onPageChanged: _handlePageChanged,
+    errorBannerBuilder: (context, error, stackTrace, documentRef) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _handleError(error);
+      });
+      return Center(
+        child: Text('Error loading PDF: $error', style: const TextStyle(color: Colors.red)),
+      );
+    },
+  );
 
   @override
   void initState() {
@@ -88,7 +103,6 @@ class _PdfDocViewState extends State<PdfDocView> {
   @override
   void dispose() {
     widget.pdfDocViewController?._detach();
-    _pdfViewController?.dispose();
     super.dispose();
   }
 
@@ -97,24 +111,11 @@ class _PdfDocViewState extends State<PdfDocView> {
     final pdfPath = widget.pdfPath;
 
     if (pdfPath.isNotEmpty) {
-      return PDFView(
+      return PdfViewer.file(
+        pdfPath,
         key: _key,
-        filePath: pdfPath,
-        defaultPage: widget.defaultPage,
-        pageFling: false,
-        pageSnap: false,
-        autoSpacing: false,
-        preventLinkNavigation: true,
-        gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-          Factory<OneSequenceGestureRecognizer>(() => VerticalDragGestureRecognizer()),
-        },
-        onRender: widget.onRender,
-        onLoadComplete: widget.onLoadComplete,
-        onDraw: _handleOnDraw,
-        onError: _handleError,
-        onPageError: _handlePageError,
-        onViewCreated: _handleViewCreated,
-        onPageChanged: _handlePageChanged,
+        initialPageNumber: widget.defaultPage,
+        params: _pdfViewerParams,
       );
     }
 
@@ -125,31 +126,27 @@ class _PdfDocViewState extends State<PdfDocView> {
     _key = UniqueKey();
   }
 
-  void _handlePageChanged(int? page, int? total) {
+  void _handlePageChanged(int? page) {
     _pageIndex = page ?? 0;
     widget.onPageChanged?.call(_pageIndex);
   }
 
-  void _handleViewCreated(PDFViewController pdfViewController) {
-    _pdfViewController = pdfViewController;
-    _pdfViewController?.setPage(_pageIndex);
-    if (_pdfViewController != null) {
-      widget.onViewCreated?.call(_pdfViewController!);
-    }
-  }
+  void _handleViewCreated(PdfViewerController pdfViewController) {
+    _pdfViewerController = pdfViewController;
+    _pdfViewerController?.goToPage(pageNumber: _pageIndex);
+    if (_pdfViewerController != null) {
+      widget.onViewCreated?.call(_pdfViewerController!);
 
-  Future<void> _handleOnDraw(double pdfXOffset, double pdfYOffset, double pdfScale) async {
-    if (_pdfViewController == null) {
-      return;
+      _pdfViewerController!.addListener(() async {
+        final zoom = _pdfViewerController!.currentZoom;
+        final matrix = _pdfViewerController!.value;
+        final xOffset = matrix.getTranslation().x;
+        final yOffset = matrix.getTranslation().y;
+
+        await widget.onDraw?.call(position: Offset(xOffset, yOffset), scale: zoom);
+      });
     }
-    // final (Offset position, double scale) = await (
-    //   _pdfViewController!.getPosition(),
-    //   _pdfViewController!.getScale(),
-    // ).wait;
-    await widget.onDraw?.call(position: Offset(pdfXOffset, pdfYOffset), scale: pdfScale);
   }
 
   void _handleError(dynamic error) => widget.onError?.call(error);
-
-  void _handlePageError(int? page, dynamic error) => widget.onPageError?.call(page, error);
 }

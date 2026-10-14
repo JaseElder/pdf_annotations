@@ -57,17 +57,12 @@ class DrawingOverlayController extends ChangeNotifier {
 class DrawingOverlay extends StatefulWidget {
   final DrawingOverlayController drawingOverlayController;
   final String pdfPath;
-
-  /// Callback to inform owner about a change in text insertion point location when the insertion point
-  /// would have been under the appearing keyboard
-  final InsertionPointSelectedCallback onInsertionPointModified;
   final ErrorCallback? onError;
 
   const DrawingOverlay({
     super.key,
     required this.drawingOverlayController,
     required this.pdfPath,
-    required this.onInsertionPointModified,
     this.onError,
   });
 
@@ -142,6 +137,9 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
     };
     _lineAnimationListener = () {
       final deltaY = _lineAnnotationsAnimation.value;
+      if (_keyboardActive) {
+        _pluginState.cursorAdjustmentForKeyboardHeightNotifier.value = -deltaY;
+      }
       _pluginState.lineAnnotationsListNotifier.setAnnotations(
         _startOfPanningLines
             .map(
@@ -154,6 +152,9 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
     };
     _textAnimationListener = () {
       final deltaY = _textAnnotationsAnimation.value;
+      if (_keyboardActive) {
+        _pluginState.cursorAdjustmentForKeyboardHeightNotifier.value = -deltaY;
+      }
       _pluginState.textAnnotationsListNotifier.setAnnotations(
         _startOfPanningTexts
             .map(
@@ -283,6 +284,7 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
   }
 
   void _setInitialMoveConditions() {
+    if (_keyboardActive) return;
     _startOfPanningLines = _pluginState.lineAnnotationsListNotifier.value;
     _startOfPanningTexts = _pluginState.textAnnotationsListNotifier.value;
     _vpPositionAtStartOfPanning = _vpPosition;
@@ -400,8 +402,6 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
         // move all drawn lines and texts up to account for keyboard show
         _animateTextAnnotationsForKbShift(0.0, -deltaY),
         _animateLineAnnotationsForKbShift(0.0, -deltaY),
-        // tell pdfview it needs to move up
-        widget.onInsertionPointModified(deltaY),
       ]);
     }
   }
@@ -410,19 +410,16 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
     final cursorAdjustment = _pluginState.cursorAdjustmentForKeyboardHeightNotifier.value;
     if (cursorAdjustment != 0.0) {
       if (!_pluginState.popInvokedNotifier.value) {
-        _pluginState.cursorAdjustmentForKeyboardHeightNotifier.value = 0.0;
         await Future.wait([
           // reset text and line annotation positions
           _animateTextAnnotationsForKbShift(-cursorAdjustment, 0.0),
           _animateLineAnnotationsForKbShift(-cursorAdjustment, 0.0),
-          // tell pdfview it needs to move down
-          widget.onInsertionPointModified(-cursorAdjustment),
         ]);
       } else {
         _pluginState.textAnnotationsListNotifier.setAnnotations(_startOfPanningTexts);
         _pluginState.lineAnnotationsListNotifier.setAnnotations(_startOfPanningLines);
-        widget.onInsertionPointModified(-cursorAdjustment);
       }
+      _pluginState.cursorAdjustmentForKeyboardHeightNotifier.value = 0.0;
     }
   }
 
@@ -563,7 +560,7 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
       if (!_pluginState.textAnnotationsListNotifier.value.contains(currentTextAnnotation)) {
         _pluginState.textAnnotationsListNotifier.addAnnotation(currentTextAnnotation);
         _addedAnnotations.add(AddedAnnotation(kTextAnnotation, currentTextAnnotation.id));
-        if (forKeyboardHide) {
+        if (forKeyboardHide || _keyboardActive) {
           _startOfPanningTexts.add(
             currentTextAnnotation.copyWith(
               coordinate:
@@ -629,8 +626,10 @@ class _DrawingOverlayState extends State<DrawingOverlay> with SingleTickerProvid
   }
 
   Future<void> _setPdfOffset(Offset position) async {
-    final pdfPageSize = await _pluginState.pdfViewControllerNotifier.value?.getCurrentPageSize() ?? .zero;
-    final pageCount = await _pluginState.pdfViewControllerNotifier.value?.getPageCount() ?? 1;
+    final pageNumber = _pluginState.pdfViewerControllerNotifier.value?.pageNumber ?? 1;
+    final pdfPageSize =
+        _pluginState.pdfViewerControllerNotifier.value?.layout.pageLayouts[pageNumber - 1].size ?? Size.zero;
+    final pageCount = _pluginState.pdfViewerControllerNotifier.value?.pageCount ?? 1;
     final pdfHeightLimit = pageCount * pdfPageSize.height - _overlayHeightScaled;
     final yTranslation = -(position.dy - 100.0);
     final newPdfOffset = _pluginState.pdfOffsetNotifier.value.translate(0.0, yTranslation);

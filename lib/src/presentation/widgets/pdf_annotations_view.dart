@@ -3,9 +3,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart' as pdf_view;
 import 'package:keyboard_height_plugin/keyboard_height_plugin.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
+import 'package:pdfrx/pdfrx.dart';
 import 'package:transparent_pointer/transparent_pointer.dart';
 
 import '../../data/models/pdf_font.dart';
@@ -201,11 +201,10 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView> with SingleTick
   late PdfDocViewController _pdfDocViewController;
   late DrawingOverlayController _drawingOverlayController;
 
-  late final pdf_view.PDFViewController? _pdfViewController;
+  late final PdfViewerController? _pdfViewerController;
   var _isProgressVisible = true;
   var _showExitProgress = false;
   late final AnimationController _animationController;
-  late Animation<Offset> _pdfScrollAnimation;
   late double _devPixRatio;
 
   List<PdfFont> _fontList = [];
@@ -292,25 +291,25 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView> with SingleTick
             _pluginState,
             child: Stack(
               children: [
-                Column(
-                  children: [
-                    Expanded(
-                      child: PdfDocView(
-                        pdfPath: widget.pdfPath,
-                        defaultPage: widget.startPage,
-                        onViewCreated: _onViewCreated,
-                        onRender: _onRender,
-                        onDraw: _onDraw,
-                        onPageChanged: _onPageChanged,
-                        onError: _onError,
-                        onPageError: _onPageError,
+                ValueListenableBuilder<double>(
+                  valueListenable: _pluginState.cursorAdjustmentForKeyboardHeightNotifier,
+                  builder: (context, cursorAdjustment, child) {
+                    return ClipRect(
+                      child: Transform.translate(
+                        offset: Offset(0.0, -cursorAdjustment),
+                        child: PdfDocView(
+                          pdfPath: widget.pdfPath,
+                          defaultPage: widget.startPage,
+                          onViewCreated: _onViewCreated,
+                          onRender: _onRender,
+                          onDraw: _onDraw,
+                          onPageChanged: _onPageChanged,
+                          onError: _onError,
+                          onPageError: _onPageError,
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      width: .infinity,
-                      height: _pluginState.cursorAdjustmentForKeyboardHeightNotifier.value,
-                    ),
-                  ],
+                    );
+                  },
                 ),
                 Visibility(
                   visible: !_isProgressVisible,
@@ -319,7 +318,6 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView> with SingleTick
                     child: DrawingOverlay(
                       drawingOverlayController: _drawingOverlayController,
                       pdfPath: widget.pdfPath,
-                      onInsertionPointModified: _onInsertionPointModified,
                       onError: _onError,
                     ),
                   ),
@@ -343,15 +341,14 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView> with SingleTick
     );
   }
 
-  void _onViewCreated(pdf_view.PDFViewController controller) {
-    _pluginState.pdfViewControllerNotifier.value = controller;
-    _pdfViewController = controller;
+  void _onViewCreated(PdfViewerController controller) {
+    _pluginState.pdfViewerControllerNotifier.value = controller;
+    _pdfViewerController = controller;
   }
 
   Future<void> _onRender(int? pages) async {
-    if (!mounted || _pdfViewController == null) return;
+    if (!mounted || _pdfViewerController == null) return;
 
-    _pdfViewController.setZoomLimits(1.0, 1.0, 1.0);
     setState(() {
       _isProgressVisible = false;
     });
@@ -359,16 +356,21 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView> with SingleTick
     var zoom = widget.pdfZoom;
 
     if (zoom == 0.0) {
-      zoom = await _pdfViewController.getScale();
+      zoom = _pdfViewerController.currentZoom;
     }
 
     if (zoom == 0.0) {
       return;
     }
-    final pdfOffsetNormalised = Offset(0.0, widget.initialOffset.dy / zoom);
-    _pluginState.pdfOffsetNotifier.value = pdfOffsetNormalised;
-    await _pdfViewController.setPosition(pdfOffsetNormalised);
-    widget.onOffsetChanged?.call(pdfOffsetNormalised);
+
+    final targetDocumentOffset = Offset(-widget.initialOffset.dx / zoom, -widget.initialOffset.dy / zoom);
+
+    final expectedMatrixTranslation = widget.initialOffset;
+
+    _pluginState.pdfOffsetNotifier.value = expectedMatrixTranslation;
+
+    await _pdfViewerController.goToPosition(documentOffset: targetDocumentOffset);
+    widget.onOffsetChanged?.call(expectedMatrixTranslation);
   }
 
   Future<void> _onPageChanged(int page) async {
@@ -414,12 +416,24 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView> with SingleTick
 
   Future<void> _undo() async {
     await _drawingOverlayController.undo();
-    _pdfViewController?.setPosition(_pluginState.pdfOffsetNotifier.value);
+    _scrollToNotifierPosition();
   }
 
   Future<void> _redo() async {
     await _drawingOverlayController.redo();
-    _pdfViewController?.setPosition(_pluginState.pdfOffsetNotifier.value);
+    _scrollToNotifierPosition();
+  }
+
+  void _scrollToNotifierPosition() {
+    if (_pdfViewerController == null) return;
+
+    final targetTranslation = _pluginState.pdfOffsetNotifier.value;
+    final zoom = _pdfViewerController.currentZoom;
+
+    final docX = -targetTranslation.dx / zoom;
+    final docY = -targetTranslation.dy / zoom;
+
+    _pdfViewerController.goToPosition(documentOffset: Offset(docX, docY));
   }
 
   void _setAnnotationColour(Color colour) {
@@ -470,34 +484,6 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView> with SingleTick
     });
   }
 
-  Future<void> _onInsertionPointModified(double adjustedHeight) async {
-    if (_pdfViewController == null) {
-      return;
-    }
-    final vpPosition = await _pdfViewController.getPosition();
-    final finishingYPos = vpPosition.dy - adjustedHeight;
-
-    if (_pluginState.popInvokedNotifier.value) {
-      _pdfViewController.setPosition(Offset(0.0, finishingYPos));
-    } else {
-      _animatePdfScroll(vpPosition, Offset(vpPosition.dx, finishingYPos));
-    }
-  }
-
-  void _animatePdfScroll(Offset begin, Offset end) {
-    _pdfScrollAnimation = Tween<Offset>(
-      begin: begin,
-      end: end,
-    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.decelerate));
-
-    _pdfScrollAnimation.addListener(_applyTransform);
-
-    _animationController.reset();
-    _animationController.forward();
-  }
-
-  void _applyTransform() => _pdfViewController?.setPosition(_pdfScrollAnimation.value);
-
   Future<bool> _saveAndAddAnnotations() async {
     final result = await _drawingOverlayController.saveAnnotationsToJsonFile();
 
@@ -534,15 +520,14 @@ class _PdfAnnotationsViewState extends State<PdfAnnotationsView> with SingleTick
 
   Future<TaskResult<bool>> _addAnnotationsToPdf() async {
     final pdfPath = widget.pdfPath;
-    if (pdfPath == '' || _pdfViewController == null) {
+    if (pdfPath == '' || _pdfViewerController == null) {
       return Success(false);
     }
 
-    final (currentPageSize, position) = await (
-      _pdfViewController.getCurrentPageSize(),
-      _pdfViewController.getPosition(),
-    ).wait;
-    final noOfPages = await _pdfViewController.getPageCount() ?? 1;
+    final pageNumber = _pdfViewerController.pageNumber ?? 1;
+    final currentPageSize = _pdfViewerController.layout.pageLayouts[pageNumber - 1].size;
+    final position = _pluginState.pdfOffsetNotifier.value;
+    final noOfPages = _pdfViewerController.pageCount;
     final double overlayScale =
         currentPageSize.width / (_drawingOverlayController.getOverlayWidthScaled()) * _devPixRatio;
     var vpOffset = -position * overlayScale;

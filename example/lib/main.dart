@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf_annotations/pdf_annotations.dart';
+import 'package:pdfrx/pdfrx.dart';
 
 void main() {
   runApp(const MaterialApp(home: MyApp()));
@@ -93,23 +93,26 @@ class _MyAppState extends State<MyApp> {
                   ),
                 ],
               ),
-              body: PDFView(
+              body: PdfViewer.file(
+                _pdfPath,
                 key: UniqueKey(),
-                filePath: _pdfPath,
-                pageFling: false,
-                pageSnap: false,
-                autoSpacing: false,
-                // showScrollIndicators: true,
-                fitPolicy: FitPolicy.WIDTH,
-                onDraw: (double pdfXOffset, double pdfYOffset, double pdfScale) {
-                  _pdfOffset = Offset(pdfXOffset, pdfYOffset);
-                  _pdfScale = pdfScale;
-                },
-                onPageChanged: (page, total) => debugPrint('Page: $page of $total'),
-                onError: (error) => debugPrint('Error: $error'),
+                params: PdfViewerParams(
+                  margin: 0.0,
+                  onViewerReady: (document, controller) => _handleViewCreated(controller),
+                ),
               ),
             ),
     );
+  }
+
+  void _handleViewCreated(PdfViewerController pdfViewController) {
+    pdfViewController.addListener(() {
+      final matrix = pdfViewController.value;
+      final xOffset = matrix.getTranslation().x;
+      final yOffset = matrix.getTranslation().y;
+      _pdfOffset = Offset(xOffset, yOffset);
+      _pdfScale = pdfViewController.currentZoom;
+    });
   }
 }
 
