@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart' show Colors;
 import 'package:flutter/widgets.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:pdfrx/pdfrx.dart';
 
 import '../../domain/entities/added_annotation.dart';
 import '../../domain/entities/line_annotation.dart';
@@ -46,7 +46,7 @@ class PluginState {
   final opacityValueNotifier = ValueNotifier<double>(1.0);
   final pdfOffsetNotifier = ValueNotifier<Offset>(.zero);
   final popInvokedNotifier = ValueNotifier<bool>(false);
-  final pdfViewControllerNotifier = ValueNotifier<PDFViewController?>(null);
+  final pdfViewerControllerNotifier = ValueNotifier<PdfViewerController?>(null);
   final redoEnabledNotifier = ValueNotifier<bool>(false);
   final textAnnotationsListNotifier = GenericAnnotationsNotifier<TextAnnotation>(
     (original, {bool? isActive}) => original.copyWith(isActive: isActive),
